@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHQ Strategy — Extending Specialist Reach</title>
+
+<!-- ===========================================
+     FONTS — Source Serif 4 (voice), DM Sans (substance), IBM Plex Mono (metadata)
+     =========================================== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   CSS CUSTOM PROPERTIES (THEME)
+   Change these to re-skin the whole deck.
+   Gold is the ONLY accent: rules, italic emphasis, numerals.
+   =========================================== */
+:root {
+    --navy: #1C2644;
+    --navy-alt: #232F55;
+    --cream: #F0ECE3;
+    --cream-alt: #E6E0D4;
+    --text-warm: #E2DCD0;
+    --muted-dark: #8A96A8;
+    --hint-dark: #5E6A80;
+    --ink: #1A2030;
+    --muted-light: #5A6270;
+    --hint-light: #8E949C;
+    --gold: #C8A870;
+    --gold-deep: #A8864A;   /* gold tuned for legibility on cream */
+    --border-dark: #2E3D5C;
+    --border-light: #CAC4B4;
+
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+
+    --pad-x: 144px;
+    --pad-y: 64px;
+
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --stage-bg: #0F1526;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===========================================
+   FIXED 16:9 STAGE — viewport-base.css (verbatim)
+   =========================================== */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+.deck-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+.deck-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg, #fff);
+}
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg, #fff);
+}
+.slide.active,
+.slide.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+    max-height: 100%;
+}
+.deck-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+@media print {
+    html,
+    body {
+        width: 1920px;
+        height: auto;
+        overflow: visible;
+        background: #fff;
+    }
+    .deck-viewport {
+        position: static;
+        overflow: visible;
+        background: #fff;
+    }
+    .deck-stage {
+        position: static;
+        width: auto;
+        height: auto;
+        transform: none !important;
+        background: none;
+    }
+    .slide {
+        position: relative;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        width: 1920px;
+        height: 1080px;
+        break-after: page;
+        page-break-after: always;
+    }
+    .slide:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+    .deck-controls {
+        display: none !important;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+}
+
+/* ===========================================
+   SURFACES — navy (dark) and cream (light)
+   Dark slides carry the near-invisible 80px grid fingerprint.
+   =========================================== */
+.slide { font-family: var(--sans); transition: opacity .45s ease, visibility .45s; }
+.slide.dark  { background: var(--navy);  color: var(--text-warm); }
+.slide.light { background: var(--cream); color: var(--ink); }
+.slide.dark::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 80px 80px;
+}
+
+/* Standard slide = chrome row / body / foot row */
+.std {
+    display: grid !important;
+    grid-template-rows: auto 1fr auto;
+    padding: var(--pad-y) var(--pad-x);
+}
+.std > * { position: relative; }  /* sit above grid texture */
+.body { min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+
+/* ===========================================
+   CHROME — mono labels with hairline rules
+   =========================================== */
+.chrome, .foot {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font: 500 16px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase;
+}
+.chrome { padding-bottom: 20px; border-bottom: 1px solid var(--border-dark); }
+.foot   { padding-top: 20px;    border-top: 1px solid var(--border-dark); font-size: 14px; letter-spacing: .12em; }
+.dark .chrome, .dark .foot { color: var(--muted-dark); }
+.light .chrome, .light .foot { color: var(--muted-light); border-color: var(--border-light); }
+.foot .src { text-transform: none; letter-spacing: .02em; font-family: var(--sans); font-size: 16px; }
+.chrome .sec b { color: var(--gold); font-weight: 500; }
+.light .chrome .sec b { color: var(--gold-deep); }
+
+/* ===========================================
+   TYPOGRAPHY — serif voice, sans substance, mono metadata
+   <em> inside any serif headline = italic gold (the "Signal moment")
+   =========================================== */
+.kicker { font: 500 18px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
+.light .kicker { color: var(--gold-deep); }
+.rule { width: 36px; height: 1px; background: var(--gold); margin: 26px 0 30px; }
+.rule.long { width: 120px; }
+
+.display { font: 400 116px/1.02 var(--serif); letter-spacing: -.02em; }
+.h1 { font: 400 96px/1.06 var(--serif); letter-spacing: -.015em; }
+.h2 { font: 400 68px/1.1 var(--serif); letter-spacing: -.01em; }
+.h3 { font: 500 38px/1.22 var(--serif); }
+.display em, .h1 em, .h2 em, .h3 em, .quote em { font-style: italic; color: var(--gold); }
+.light .display em, .light .h1 em, .light .h2 em, .light .h3 em, .light .quote em { color: var(--gold-deep); }
+.dark .display, .dark .h1, .dark .h2, .dark .h3 { color: #F0ECE3; }
+
+.lead { font: 400 32px/1.5 var(--sans); }
+.dark .lead { color: var(--muted-dark); }
+.light .lead { color: var(--muted-light); }
+.lead em, .txt em { font-family: var(--serif); font-style: italic; color: var(--gold); }
+.light .lead em, .light .txt em { color: var(--gold-deep); }
+.txt { font: 400 26px/1.55 var(--sans); }
+.small { font: 400 21px/1.5 var(--sans); }
+.dark .small { color: var(--muted-dark); }
+.light .small { color: var(--muted-light); }
+.mono { font-family: var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+
+/* Stat numerals — always gold serif */
+.stat { font: 600 132px/1 var(--serif); letter-spacing: -.02em; color: var(--gold); }
+.light .stat { color: var(--gold-deep); }
+.stat small { font-size: .45em; font-weight: 400; margin-left: .06em; }
+
+/* Em-dash bullets in gold mono */
+.dash { list-style: none; }
+.dash li { display: grid; grid-template-columns: 1.4em 1fr; gap: .4em; padding: 14px 0; }
+.dash li::before { content: "—"; font-family: var(--mono); color: var(--gold); }
+.light .dash li::before { color: var(--gold-deep); }
+
+/* Hairline helpers */
+.hl-top { border-top: 1px solid var(--border-dark); }
+.light .hl-top { border-color: var(--border-light); }
+
+/* ===========================================
+   ANIMATION — staggered fade-up on the active slide
+   Use data-a on elements; --d sets delay step.
+   =========================================== */
+[data-a] { opacity: 0; transform: translateY(22px); transition: opacity .8s var(--ease), transform .8s var(--ease); transition-delay: calc(var(--d, 0) * 110ms + 120ms); }
+.slide.visible [data-a] { opacity: 1; transform: none; }
+.grow { transform-origin: left; transform: scaleX(0); transition: transform 1.1s var(--ease); transition-delay: calc(var(--d, 0) * 110ms + 250ms); }
+.slide.visible .grow { transform: scaleX(1); }
+
+/* ===========================================
+   LAYOUT: COVER / CHAPTER / STATEMENT (chromeless)
+   =========================================== */
+.cover { padding: 90px var(--pad-x); }
+.cover .top { position: absolute; left: var(--pad-x); right: var(--pad-x); top: 90px; display: flex; justify-content: space-between; padding-bottom: 22px; border-bottom: 1px solid var(--border-dark); font: 500 18px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted-dark); }
+.cover .main { position: absolute; left: var(--pad-x); top: 300px; width: 1500px; }
+.cover .bot { position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: 90px; display: flex; gap: 90px; padding-top: 22px; border-top: 1px solid var(--border-dark); font: 500 18px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted-dark); }
+.cover .bot b { color: var(--gold); font-weight: 500; }
+
+.chapter .inner { position: absolute; left: var(--pad-x); top: 50%; transform: translateY(-50%); width: 1400px; }
+.chapter .num { font: 300 220px/0.9 var(--serif); color: var(--gold); letter-spacing: -.03em; }
+.chapter .ghost { position: absolute; right: 120px; bottom: -80px; font: italic 300 560px/1 var(--serif); color: rgba(200,168,112,.06); pointer-events: none; }
+
+.statement .inner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1480px; }
+.statement .quote { font: 400 78px/1.2 var(--serif); letter-spacing: -.01em; color: #F0ECE3; }
+.light.statement .quote { color: var(--ink); }
+.statement .qmark { font: 300 200px/0.6 var(--serif); color: var(--gold); display: block; margin-bottom: 30px; }
+
+/* ===========================================
+   LAYOUT: COLUMNS, STAT TILES, ROWS
+   =========================================== */
+.cols { display: grid; gap: 64px; }
+.cols-2 { grid-template-columns: 1fr 1fr; }
+.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cols-4 { grid-template-columns: repeat(4, 1fr); gap: 48px; }
+.tile { border-top: 1px solid var(--border-dark); padding-top: 34px; }
+.light .tile { border-color: var(--border-light); }
+.tile .tnum { font: 500 16px/1 var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; margin-bottom: 26px; }
+.light .tile .tnum { color: var(--gold-deep); }
+.tile .h3 { margin-bottom: 18px; }
+.step { border-top: 2px solid var(--gold); padding-top: 30px; }
+
+.rows > div { display: grid; grid-template-columns: 420px 1fr; gap: 60px; padding: 26px 0; border-top: 1px solid var(--border-dark); align-items: baseline; }
+.light .rows > div { border-color: var(--border-light); }
+.rows > div:last-child { border-bottom: 1px solid var(--border-dark); }
+.light .rows > div:last-child { border-bottom-color: var(--border-light); }
+.rows .k { font: 500 38px/1.2 var(--serif); }
+.rows .k em { font-style: italic; color: var(--gold); }
+.light .rows .k em { color: var(--gold-deep); }
+
+/* Headline block at top of a standard slide body */
+.head { margin-bottom: 56px; }
+.head .h2 { max-width: 1500px; }
+
+/* ===========================================
+   COMPONENT: BAR CHART (demand vs population)
+   =========================================== */
+.bars { display: grid; gap: 30px; }
+.bar-row { display: grid; grid-template-columns: 300px 1fr 150px; align-items: center; gap: 30px; }
+.bar-row .lbl { font: 400 28px/1.2 var(--sans); color: var(--text-warm); }
+.bar-track { height: 54px; position: relative; }
+.bar-fill { height: 100%; background: var(--hint-dark); }
+.bar-fill.gold { background: var(--gold); }
+.bar-row .val { font: 600 52px/1 var(--serif); color: var(--gold); letter-spacing: -.02em; }
+.bar-row.base .val { color: var(--muted-dark); }
+.axis { display: grid; grid-template-columns: 300px 1fr 150px; gap: 30px; }
+.axis .ticks { display: flex; justify-content: space-between; font: 500 15px/1 var(--mono); color: var(--hint-dark); letter-spacing: .1em; padding-top: 14px; border-top: 1px solid var(--border-dark); }
+
+/* ===========================================
+   COMPONENT: SCORECARD (evaluation)
+   =========================================== */
+.score { width: 100%; border-collapse: collapse; font-family: var(--sans); }
+.score th { font: 500 16px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted-light); text-align: left; padding: 0 24px 22px; }
+.score th.o1 { color: var(--gold-deep); }
+.score td { padding: 20px 24px; border-top: 1px solid var(--border-light); font-size: 27px; vertical-align: middle; }
+.score td:first-child { padding-left: 0; }
+.score td .w { font: 500 17px var(--mono); color: var(--hint-light); letter-spacing: .1em; margin-left: 12px; }
+.score .o1 { background: rgba(200,168,112,.12); }
+.score .cell { display: flex; align-items: center; gap: 18px; }
+.score .n { font: 600 34px/1 var(--serif); width: 28px; }
+.pips { display: flex; gap: 6px; }
+.pips i { width: 16px; height: 16px; border: 1px solid var(--border-light); display: block; }
+.pips i.on { background: var(--ink); border-color: var(--ink); }
+.o1 .pips i.on { background: var(--gold-deep); border-color: var(--gold-deep); }
+.score tr.total td { border-top: 2px solid var(--ink); padding-top: 26px; font-weight: 500; }
+.score tr.total .n { font-size: 58px; width: auto; color: var(--muted-light); }
+.score tr.total .o1 .n { color: var(--gold-deep); }
+
+/* ===========================================
+   COMPONENT: STACKED SHARE BAR (robustness)
+   =========================================== */
+.share { display: flex; height: 70px; width: 100%; }
+.share div { height: 100%; }
+.share .a { background: var(--gold); width: 97.8%; }
+.share .b { background: var(--muted-dark); width: 2.2%; }
+
+/* ===========================================
+   COMPONENT: PHASE TIMELINE (18 months, gates)
+   =========================================== */
+.tl { position: relative; margin-top: 30px; }
+.tl .track { display: grid; grid-template-columns: 3fr 3fr 9fr 3fr; }
+.tl .ph { border-top: 2px solid var(--gold); padding: 30px 30px 0 0; position: relative; }
+.tl .ph + .ph { padding-left: 30px; border-left: 1px solid var(--border-dark); }
+.tl .ph .when { font: 500 16px/1 var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; }
+.tl .ph .h3 { margin: 18px 0 14px; }
+.tl .scale { position: relative; height: 70px; margin-top: 50px; border-top: 1px solid var(--border-dark); }
+.tl .gate { position: absolute; top: -8px; transform: translateX(-50%); text-align: center; }
+.tl .gate i { display: block; width: 15px; height: 15px; border-radius: 50%; background: var(--gold); margin: 0 auto 14px; }
+.tl .gate span { font: 500 15px/1.3 var(--mono); letter-spacing: .12em; color: var(--muted-dark); text-transform: uppercase; white-space: nowrap; }
+
+/* ===========================================
+   COMPONENT: KPI ROWS (from → target)
+   =========================================== */
+.kpi > div { display: grid; grid-template-columns: 1fr 260px 90px 330px; align-items: center; padding: 30px 0; border-top: 1px solid var(--border-light); }
+.kpi > div:last-child { border-bottom: 1px solid var(--border-light); }
+.kpi .what { font: 400 34px/1.25 var(--serif); }
+.kpi .from { font: 500 20px var(--mono); color: var(--hint-light); letter-spacing: .1em; text-align: right; }
+.kpi .arrow { text-align: center; color: var(--border-light); font-size: 34px; }
+.kpi .to { font: 600 52px/1 var(--serif); color: var(--gold-deep); letter-spacing: -.02em; }
+.kpi .to.word { font-size: 32px; font-style: italic; font-weight: 400; }
+
+/* ===========================================
+   COMPONENT: PATHWAY LIST (recommendation)
+   =========================================== */
+.path { display: grid; grid-template-columns: 90px 1fr auto; align-items: baseline; padding: 30px 0; border-top: 1px solid var(--border-dark); }
+.path:last-child { border-bottom: 1px solid var(--border-dark); }
+.path .i { font: 500 18px var(--mono); color: var(--gold); letter-spacing: .14em; }
+.path .where { font: 500 18px var(--mono); color: var(--muted-dark); letter-spacing: .16em; text-transform: uppercase; }
+
+/* ===========================================
+   COMPONENT: DATA TABLES (appendices)
+   =========================================== */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { font: 500 15px/1.2 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-deep); text-align: left; padding: 0 20px 16px 0; vertical-align: bottom; }
+.tbl td { font: 400 21px/1.42 var(--sans); padding: 15px 20px 15px 0; border-top: 1px solid var(--border-light); vertical-align: top; color: var(--ink); }
+.tbl td:first-child { font-family: var(--serif); font-size: 23px; font-weight: 500; }
+.tbl.nums td:not(:first-child) { font-family: var(--serif); font-size: 24px; }
+.tbl tr.tot td { border-top: 2px solid var(--ink); font-weight: 600; }
+.tbl .gold { color: var(--gold-deep); font-weight: 600; }
+.app .h2 { font-size: 54px; }
+.app .head { margin-bottom: 40px; }
+.app-list li { font-size: 23px; padding: 12px 0; line-height: 1.45; }
+.app-list b { font-family: var(--serif); font-weight: 600; font-size: 25px; }
+
+/* ===========================================
+   SPEAKER NOTES — hidden in slides, shown in a panel (press N)
+   =========================================== */
+.notes { display: none; }
+.notes-panel {
+    position: fixed; left: 0; right: 0; bottom: 0; max-height: 38vh; overflow-y: auto;
+    background: rgba(15,21,38,.97); color: var(--text-warm); border-top: 1px solid var(--gold);
+    padding: 22px 32px 30px; font: 400 17px/1.6 var(--sans); z-index: 2000;
+    transform: translateY(100%); transition: transform .35s var(--ease);
+}
+.notes-panel.open { transform: none; }
+.notes-panel h4 { font: 500 12px/1 var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; margin-bottom: 12px; }
+.notes-panel p { margin-bottom: 10px; max-width: 1100px; }
+
+/* ===========================================
+   DECK CHROME OUTSIDE THE STAGE — progress + counter
+   =========================================== */
+.progress { position: fixed; left: 0; top: 0; height: 3px; background: var(--gold); z-index: 1500; transition: width .4s var(--ease); }
+.deck-controls { font: 500 12px/1 var(--mono); letter-spacing: .16em; color: var(--muted-dark); opacity: .0; transition: opacity .3s; }
+body:hover .deck-controls { opacity: .8; }
+
+/* ===========================================
+   INLINE EDITING — hover top-left or press E
+   =========================================== */
+.edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+.edit-toggle { position: fixed; top: 16px; left: 16px; z-index: 10001; opacity: 0; pointer-events: none; transition: opacity .3s ease;
+    background: var(--navy); color: var(--gold); border: 1px solid var(--gold); font: 500 12px var(--mono); letter-spacing: .14em; padding: 10px 14px; cursor: pointer; text-transform: uppercase; }
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5); outline-offset: 4px; }
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- =========================================================
+     01 · COVER
+     ========================================================= -->
+<section class="slide dark cover" data-section="Cover">
+    <div class="top" data-a><span>Children's Health Queensland</span><span>Board briefing · 29.09.2026</span></div>
+    <div class="main">
+        <div class="rule long grow"></div>
+        <h1 class="display" data-a style="--d:1">Extending the reach of specialist paediatric expertise <em>across Queensland</em></h1>
+        <p class="lead" data-a style="--d:2; margin-top:56px; max-width:1100px">Strategic options and recommendation for Children's Health Queensland (CHQ)</p>
+    </div>
+    <div class="bot" data-a style="--d:3"><span><b>MGTS7803</b> Strategy: From Design to Practice</span><span><b>UQ</b> MBA</span><span>29 September 2026</span></div>
+    <aside class="notes">
+        <p>Good morning. Thank you for the opportunity to present. Over the next twelve minutes I will take you through the strategic challenge facing Children's Health Queensland, the three options we developed, how we evaluated them, and the option we recommend to the Board, together with what it would take to deliver it. A full set of appendices sits behind the main deck for any questions on method, evidence and implementation detail.</p>
+        <p>Timing guide: title/opening 0:30; strategic challenge 1:20; analysis 1:30; options 1:20; evaluation 1:40; recommendation 1:40; value 1:20; implementation 1:30; close 1:10. Total ≈12 minutes. Appendices are for Q&amp;A only.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     02 · CHALLENGE — core question (statement)
+     ========================================================= -->
+<section class="slide dark statement" data-section="The challenge">
+    <div class="inner">
+        <div class="kicker" data-a>01 · The strategic challenge</div>
+        <div class="rule grow"></div>
+        <p class="quote" data-a style="--d:1">How can CHQ extend the <em>reach</em> of its specialist expertise across Queensland while protecting the <em>concentration</em> of capability that quaternary excellence needs?</p>
+    </div>
+    <aside class="notes">
+        <p>Together, three gaps create the core strategic challenge: how can CHQ extend the reach of its specialist expertise across Queensland while protecting the concentration of capability required for quaternary excellence? This is the question that drives our subsequent strategic analysis.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     03 · THREE GAPS
+     ========================================================= -->
+<section class="slide light std" data-section="The challenge">
+    <div class="chrome"><span class="sec"><b>01</b> · The strategic challenge</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>Three gaps define CHQ's <em>strategic challenge</em></h2></div>
+        <div class="cols cols-3">
+            <div class="tile" data-a style="--d:1">
+                <div class="tnum">01 · Capability gap</div>
+                <div class="stat">37<small>%</small></div>
+                <p class="txt" style="margin-top:18px">of Category 2 outpatients are seen on time.</p>
+                <p class="small" style="margin-top:22px">Demand growing 2.9–5.1% a year against 1.2% population growth. Vacancy rate 14.2%; staff engagement 68%.</p>
+            </div>
+            <div class="tile" data-a style="--d:2">
+                <div class="tnum">02 · Geographic gap</div>
+                <div class="stat">80<small>%</small></div>
+                <p class="txt" style="margin-top:18px">of Greater Brisbane's extra children will live outside QCH's catchment.</p>
+                <p class="small" style="margin-top:22px">125,953 of 156,990. Growth corridors such as Ipswich (+3.2% a year) sit far from the specialist hub.</p>
+            </div>
+            <div class="tile" data-a style="--d:3">
+                <div class="tnum">03 · Operating-model gap</div>
+                <div class="stat">0<small> of 7</small></div>
+                <p class="txt" style="margin-top:18px">networked-care KPIs reported in 2024-25.</p>
+                <p class="small" style="margin-top:22px">The statewide role is not mandated, funded or governed. Operating surplus fell from $10.99m to $0.13m.</p>
+            </div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: CHQ Master Plan 2021/22–2036/37; CHQ Annual Report 2024–25.</span></div>
+    <aside class="notes">
+        <p>We identified three key gaps in CHQ's current position. First, there is a capability gap: demand for specialised paediatric expertise may grow faster than the supply of specialist clinicians. Second, there is a geographic gap: specialist capability is concentrated in Brisbane, creating access challenges for regional and remote communities. Third, there is an operating-model gap: a hospital-centric model alone may not be sufficient to achieve CHQ's broader statewide ambition.</p>
+        <p>Justification: each gap is anchored in CHQ's own data (Annual Report 2024-25, Master Plan 2021/22-2036/37). Presenting the gaps as evidence-backed, not assumed, sets up the analysis and the evaluation criteria that follow.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     04 · ANALYSIS — demand vs population chart
+     ========================================================= -->
+<section class="slide dark std" data-section="Analysis">
+    <div class="chrome"><span class="sec"><b>02</b> · Analysis</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>Demand is growing <em>two to four times</em> faster than the children CHQ serves</h2></div>
+        <div class="bars" data-a style="--d:1">
+            <div class="kicker" style="margin-bottom:6px">Projected growth, % a year (Master Plan)</div>
+            <div class="bar-row base"><span class="lbl">Population 0–19</span><div class="bar-track"><div class="bar-fill grow" style="width:20%"></div></div><span class="val">1.2%</span></div>
+            <div class="bar-row"><span class="lbl">Outpatient</span><div class="bar-track"><div class="bar-fill gold grow" style="width:48.3%; --d:1"></div></div><span class="val">2.9%</span></div>
+            <div class="bar-row"><span class="lbl">Inpatient</span><div class="bar-track"><div class="bar-fill gold grow" style="width:55%; --d:2"></div></div><span class="val">3.3%</span></div>
+            <div class="bar-row"><span class="lbl">Community</span><div class="bar-track"><div class="bar-fill gold grow" style="width:85%; --d:3"></div></div><span class="val">5.1%</span></div>
+            <div class="axis"><span></span><div class="ticks"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6%</span></div><span></span></div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: CHQ Master Plan 2021/22–2036/37.</span></div>
+    <aside class="notes">
+        <p>Our external and internal analyses point to one conclusion. Externally, the PESTEL shows policy and demographic pressure to distribute care: Queensland Health wants equitable access and regional capability, and Queensland's child population is growing, mostly outside the QCH catchment. The chart shows demand for CHQ services growing two to four times faster than the population it serves.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     05 · ANALYSIS — frameworks
+     ========================================================= -->
+<section class="slide light std" data-section="Analysis">
+    <div class="chrome"><span class="sec"><b>02</b> · Analysis</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>Scarce specialist expertise is both CHQ's <em>advantage</em> and its <em>constraint</em></h2></div>
+        <div class="rows">
+            <div data-a style="--d:1"><span class="k">PESTEL</span><p class="txt">Policy and demographics push care <em>closer to home</em>.</p></div>
+            <div data-a style="--d:2"><span class="k">Five Forces</span><p class="txt">Supplier power high (scarce specialists); buyer power high (CHQ cannot direct HHSs); rivalry and entrants low.</p></div>
+            <div data-a style="--d:3"><span class="k">VRIN</span><p class="txt">Quaternary expertise is a sustained advantage, but the same people carry care, training and statewide support.</p></div>
+            <div data-a style="--d:4"><span class="k">Budget</span><p class="txt">Expenses +8.5% vs income +7.4% in 2024-25.</p></div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Sources: CHQ Master Plan; Annual Report 2024–25; Porter (2008); Barney (1991).</span></div>
+    <aside class="notes">
+        <p>Five Forces shows the strongest pressure is supplier power: specialist clinicians are scarce and slow to train. Buyer power is also high because CHQ cannot direct other Hospital and Health Services. Rivalry and new entrants are low, so the challenge is not competition, it is capacity.</p>
+        <p>Internally, the VRIN and value-chain work shows CHQ's quaternary expertise and concentrated exposure to complex cases are valuable, rare, costly to imitate and hard to substitute. But the same workforce is asked to deliver complex care, train others and build statewide capability. Financially there is no buffer: surplus fell to $0.13m.</p>
+        <p>Justification: sources are CHQ Master Plan pp.11, 34; Annual Report 2024-25 pp.41-45; Porter (2008); Barney (1991).</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     06 · INSIGHT (statement)
+     ========================================================= -->
+<section class="slide dark statement" data-section="Analysis">
+    <div class="inner">
+        <div class="kicker" data-a>The insight we carry forward</div>
+        <div class="rule grow"></div>
+        <p class="quote" data-a style="--d:1">Centralisation creates capability <em>depth</em>.<br>Networking creates capability <em>reach</em>.</p>
+    </div>
+    <aside class="notes">
+        <p>The insight we carry forward: centralisation creates capability depth, networking creates capability reach. Any option must decide what stays concentrated and what can be safely extended.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     07 · THREE OPTIONS
+     ========================================================= -->
+<section class="slide light std" data-section="Options">
+    <div class="chrome"><span class="sec"><b>03</b> · Strategic options</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>Three options, each a <em>different degree</em> of change</h2></div>
+        <div class="cols cols-3">
+            <div class="step" data-a style="--d:1">
+                <div class="kicker" style="font-size:16px">Option 1</div><p class="small" style="margin:10px 0 20px">Extension of the existing path</p>
+                <h3 class="h3" style="font-size:48px; margin-bottom:22px">Extend networked care</h3>
+                <p class="txt">Scale advice, outreach, shared care and local follow-up in 2–3 pathways with willing HHS partners.</p>
+                <p class="small" style="margin-top:22px"><span class="mono" style="font-size:14px">Risk ·</span> stays fragmented if gains are not codified.</p>
+            </div>
+            <div class="step" data-a style="--d:2">
+                <div class="kicker" style="font-size:16px">Option 2</div><p class="small" style="margin:10px 0 20px">Radical change in the existing market</p>
+                <h3 class="h3" style="font-size:48px; margin-bottom:22px">Network orchestrator</h3>
+                <p class="txt">CHQ and HHSs jointly set statewide pathways, standards, shared records and a dashboard.</p>
+                <p class="small" style="margin-top:22px"><span class="mono" style="font-size:14px">Risk ·</span> accountability without authority or funding.</p>
+            </div>
+            <div class="step" data-a style="--d:3">
+                <div class="kicker" style="font-size:16px">Option 3</div><p class="small" style="margin:10px 0 20px">Expansion into new segments</p>
+                <h3 class="h3" style="font-size:48px; margin-bottom:22px">New markets</h3>
+                <p class="txt">Sell education, research partnerships and selected IP beyond Queensland.</p>
+                <p class="small" style="margin-top:22px"><span class="mono" style="font-size:14px">Risk ·</span> diverts scarce clinicians; returns uncertain.</p>
+            </div>
+        </div>
+        <p class="small" data-a style="--d:4; margin-top:60px"><span class="mono" style="font-size:14px">Unit of change ·</span> specific pathways (1) &nbsp;›&nbsp; the whole network's operating model (2) &nbsp;›&nbsp; new external customers (3)</p>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: Assessment 2 final options &amp; evidence.</span></div>
+    <aside class="notes">
+        <p>We developed three options that differ in how far they move from CHQ's current path, as the brief required. Option 1 extends the existing path: it scales shared care, specialist advice, outreach and local follow-up in two or three selected clinical pathways with willing partner HHSs. It builds on what CHQ already runs, such as Specialist Online Advice, ECHO, and the Rockhampton and Townsville partnerships. Option 2 is a radical change within the existing market: CHQ becomes the network orchestrator, jointly setting statewide pathways, standards, shared records and a quality dashboard. Option 3 expands into new markets: packaging education, research partnerships and intellectual property for interstate, private and international buyers.</p>
+        <p>Justification: the three options cover the three strategic directions in the task brief. Each tackles the gaps differently, Option 1 through pathways, Option 2 through the operating model, Option 3 through new revenue. Each has a distinctive main risk, which drove the evaluation.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     08 · EVALUATION SCORECARD
+     ========================================================= -->
+<section class="slide light std" data-section="Evaluation">
+    <div class="chrome"><span class="sec"><b>04</b> · Evaluation</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head" style="margin-bottom:40px"><h2 class="h2" data-a>Option 1 is the only option with <em>no weak test</em></h2></div>
+        <table class="score" data-a style="--d:1">
+            <thead><tr><th>Criterion (weight)</th><th class="o1">Option 1</th><th>Option 2</th><th>Option 3</th></tr></thead>
+            <tbody>
+                <tr><td>Suitability<span class="w">30%</span></td><td class="o1"><div class="cell"><span class="n">4</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div></td><td><div class="cell"><span class="n">5</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div></td><td><div class="cell"><span class="n">2</span><span class="pips"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div></td></tr>
+                <tr><td>Feasibility<span class="w">25%</span></td><td class="o1"><div class="cell"><span class="n">4</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div></td><td><div class="cell"><span class="n">2</span><span class="pips"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div></td><td><div class="cell"><span class="n">3</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div></td></tr>
+                <tr><td>Acceptability: stakeholders<span class="w">20%</span></td><td class="o1"><div class="cell"><span class="n">4</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div></td><td><div class="cell"><span class="n">3</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div></td><td><div class="cell"><span class="n">3</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div></td></tr>
+                <tr><td>Acceptability: risk<span class="w">15%</span></td><td class="o1"><div class="cell"><span class="n">4</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div></td><td><div class="cell"><span class="n">2</span><span class="pips"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div></td><td><div class="cell"><span class="n">3</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div></td></tr>
+                <tr><td>Value / return<span class="w">10%</span></td><td class="o1"><div class="cell"><span class="n">3</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div></td><td><div class="cell"><span class="n">4</span><span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div></td><td><div class="cell"><span class="n">2</span><span class="pips"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div></td></tr>
+                <tr class="total"><td>Weighted total</td><td class="o1"><span class="n">3.9</span></td><td><span class="n">3.3</span></td><td><span class="n">2.6</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: Team SAF evaluation and 10,000-weight sensitivity analysis.</span></div>
+    <aside class="notes">
+        <p>We evaluated the options using the suitability, acceptability and feasibility tests from Johnson and colleagues, splitting acceptability into stakeholder acceptability and risk exposure and adding a value criterion. Weights reflect CHQ's circumstances: suitability 30 percent, feasibility 25, stakeholder acceptability 20, risk 15 and value 10. Feasibility and acceptability together carry 60 percent because CHQ cannot direct other HHSs and has almost no financial buffer.</p>
+        <p>Option 2 is the most suitable, scoring 5, but scores only 2 on feasibility and risk. Option 3 scores 2 on suitability and value. Option 1 scores 3 or 4 on every test, giving weighted totals of 3.9, 3.3 and 2.6.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     09 · ROBUSTNESS
+     ========================================================= -->
+<section class="slide dark std" data-section="Evaluation">
+    <div class="chrome"><span class="sec"><b>04</b> · Evaluation</span><span class="count"></span></div>
+    <div class="body">
+        <div class="cols cols-2" style="align-items:end; gap:110px">
+            <div data-a>
+                <div class="kicker">Robustness · 10,000 random weightings</div>
+                <div class="rule"></div>
+                <div class="stat" style="font-size:240px">97.8<small>%</small></div>
+                <p class="lead" style="margin-top:26px; color:var(--text-warm)">of weightings rank Option 1 first.</p>
+            </div>
+            <div data-a style="--d:1">
+                <p class="h3" style="color:#F0ECE3">Option 2 wins only if its feasibility reaches <em>5 out of 5</em>.</p>
+                <p class="lead" style="margin-top:26px">That needs a mandate, shared data and funding — precisely what an Option 1 pilot would help secure.</p>
+            </div>
+        </div>
+        <div data-a style="--d:2; margin-top:90px">
+            <div class="share"><div class="a grow"></div><div class="b"></div></div>
+            <div style="display:flex; justify-content:space-between; margin-top:18px" class="mono small"><span style="color:var(--gold)">Option 1 · 97.8%</span><span>Option 2 · 2.2% &nbsp;·&nbsp; Option 3 · 0%</span></div>
+        </div>
+        <p class="h3" data-a style="--d:3; margin-top:80px; max-width:1640px; color:#F0ECE3">Option 2 is the best <em>long-term</em> fit; Option 1 is the best <em>deliverable</em> fit — and the route to Option 2.</p>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: Team SAF evaluation and 10,000-weight sensitivity analysis.</span></div>
+    <aside class="notes">
+        <p>We stress-tested the weights with 10,000 random weightings. Option 1 ranked first in 97.8 percent. Option 2 overtakes only if its feasibility reaches 5 out of 5, which needs a mandate, shared data and funding, precisely what an Option 1 pilot would help secure. The scores are team judgement from published evidence and executives should re-score with internal data.</p>
+        <p>Justification: a strategy that cannot be delivered does not create value, so we weighted deliverability heavily and tested that the result does not depend on our weights.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     10 · RECOMMENDATION — what
+     ========================================================= -->
+<section class="slide dark std" data-section="Recommendation">
+    <div class="chrome"><span class="sec"><b>05</b> · Recommendation</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>Recommendation: an <em>ECHO-led, stage-gated</em> Option 1</h2>
+            <p class="lead" data-a style="--d:1; margin-top:24px">Approve Option 1 as CHQ's preferred strategy for 2026–2028: an 18-month, jointly governed pathway program in three pathways.</p></div>
+        <div data-a style="--d:2">
+            <div class="path"><span class="i">01</span><span class="h3">Type 1 diabetes</span><span class="where">Central Queensland</span></div>
+            <div class="path"><span class="i">02</span><span class="h3">Cleft care</span><span class="where">Townsville</span></div>
+            <div class="path"><span class="i">03</span><span class="h3">General paediatrics and neurology</span><span class="where">West Moreton</span></div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Sources: CHQ ECHO evidence; networked-care evidence register.</span></div>
+    <aside class="notes">
+        <p>We recommend Option 1, run as an 18-month, jointly governed pathway program in three pilot pathways: type 1 diabetes with Central Queensland, cleft care with Townsville, and general paediatric and neurology follow-up with West Moreton. This addresses the geographic gap.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     11 · RECOMMENDATION — four modifications
+     ========================================================= -->
+<section class="slide light std" data-section="Recommendation">
+    <div class="chrome"><span class="sec"><b>05</b> · Recommendation</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>How — and why — we <em>modified</em> Option 1</h2></div>
+        <div class="cols cols-4">
+            <div class="step" data-a style="--d:1"><div class="stat" style="font-size:80px">1</div><h3 class="h3" style="margin:22px 0 14px">ECHO-led workforce redesign at the core</h3><p class="small">Targets the capability gap.</p></div>
+            <div class="step" data-a style="--d:2"><div class="stat" style="font-size:80px">2</div><h3 class="h3" style="margin:22px 0 14px">Joint governance with partner HHSs</h3><p class="small">Targets the operating-model gap.</p></div>
+            <div class="step" data-a style="--d:3"><div class="stat" style="font-size:80px">3</div><h3 class="h3" style="margin:22px 0 14px">Funded data foundations and AI assurance</h3><p class="small">$0.45m workstream.</p></div>
+            <div class="step" data-a style="--d:4"><div class="stat" style="font-size:80px">4</div><h3 class="h3" style="margin:22px 0 14px">Stage gates and stop rules</h3><p class="small">Option 2 decided at month 18; Option 3 deferred.</p></div>
+        </div>
+        <p class="h3" data-a style="--d:5; margin-top:80px">Value now, with the <em>option to transform later</em>: Option 1 is the practical first step to Option 2.</p>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Sources: CHQ ECHO evidence; networked-care evidence register.</span></div>
+    <aside class="notes">
+        <p>We recommend Option 1, but we modified it in four ways to make it fit CHQ's constraints. First, the core is an ECHO-led workforce redesign. GPs, nurse practitioners, nurse navigators and advanced-practice allied health take on more triage and case management, backed by ECHO and consultant-endorsed protocols, so QCH specialists concentrate on quaternary care. This targets the capability gap directly. Second, it runs as a jointly governed program with partner HHSs. Third, we added a funded data foundations and AI assurance workstream, because our review found CHQ cannot yet measure networked care. Fourth, we made it a real option: capped spend, gates at 6, 12 and 18 months, and Option 2 deferred to a business case at month 18, while Option 3 goes to a six-month asset review with no revenue assumed.</p>
+        <p>Justification: the evidence is local. In CHQ's ADHD ECHO, GP self-efficacy rose from 2.6 to 5.4 out of 7; a GP-paediatrician trial cut high-referring GPs' referrals from 7.3 to 3.0 percent. Telehealth already runs 25 percent above target.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     12 · VALUE — the numbers
+     ========================================================= -->
+<section class="slide dark std" data-section="Value">
+    <div class="chrome"><span class="sec"><b>06</b> · Value</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>Better access and a protected specialist workforce, for a <em>small, capped</em> investment</h2></div>
+        <div class="cols cols-3">
+            <div class="tile" data-a style="--d:1"><div class="stat">$4.4<small>m</small></div><p class="txt" style="margin-top:22px">18-month program</p><p class="small">0.38% of annual spend</p></div>
+            <div class="tile" data-a style="--d:2"><div class="stat">~$95<small>m</small></div><p class="txt" style="margin-top:22px">QCH capital avoided</p><p class="small">in a working network</p></div>
+            <div class="tile" data-a style="--d:3"><div class="stat">73.7</div><p class="txt" style="margin-top:22px">fewer additional QCH beds</p><p class="small">by 2036/37</p></div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: CHQ Master Plan capacity scenarios; indicative program budget.</span></div>
+    <aside class="notes">
+        <p>The recommendation creates value for the organisation and for each key stakeholder. For CHQ, the program is about $4.4 million over 18 months, 0.38 percent of annual expenditure and about 5 percent of the precinct capital a working network could avoid. The Master Plan's fully networked scenario cuts additional QCH beds needed by 2036/37 from 95.7 to 22.0, and precinct capital from $229.1 million to $134.2 million. We are not claiming Option 1 delivers all of that; it tests whether the larger commitment is worth making.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     13 · VALUE — stakeholders
+     ========================================================= -->
+<section class="slide light std" data-section="Value">
+    <div class="chrome"><span class="sec"><b>06</b> · Value</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>Value for <em>every</em> key stakeholder</h2></div>
+        <div class="rows">
+            <div data-a style="--d:1"><span class="k">Children and families</span><p class="txt">Less travel, faster follow-up, named coordinator.</p></div>
+            <div data-a style="--d:2"><span class="k">CHQ clinicians</span><p class="txt">Specialist time on complex care; teaching and career roles.</p></div>
+            <div data-a style="--d:3"><span class="k">Partner HHSs</span><p class="txt">Local capability; ABF retained locally.</p></div>
+            <div data-a style="--d:4"><span class="k">Department of Health</span><p class="txt">Service Agreement evidence; capital avoided.</p></div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: CHQ Master Plan capacity scenarios; indicative program budget.</span></div>
+    <aside class="notes">
+        <p>For families, less travel, faster follow-up and a named coordinator. For CHQ clinicians, protected time for complex care, teaching roles that support retention, at a time when engagement is 68 percent. For partner HHSs, new local capability and ABF retained locally. For the Department of Health, evidence for the Service Agreement and avoided capital. For Aboriginal and Torres Strait Islander families, care on Country, building on Deadly Ears and IROC.</p>
+        <p>There are trade-offs. CHQ will lose some activity-based funding as follow-up moves locally. Our illustrative model shows about 80 percent is offset through telehealth funding and refilling freed slots, but this must be validated by CHQ Finance.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     14 · IMPLEMENTATION — timeline
+     ========================================================= -->
+<section class="slide dark std" data-section="Implementation">
+    <div class="chrome"><span class="sec"><b>07</b> · Implementation</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>18 months, four phases, <em>Board gates</em> at every step</h2></div>
+        <div class="tl" data-a style="--d:1">
+            <div class="track">
+                <div class="ph"><div class="when">Months 0–3</div><h3 class="h3">Mobilise</h3><p class="small">Governance group, MOUs, baselines</p></div>
+                <div class="ph"><div class="when">Months 3–6</div><h3 class="h3">Co-design</h3><p class="small">Pathway agreements, safety thresholds</p></div>
+                <div class="ph"><div class="when">Months 6–15</div><h3 class="h3">Pilot</h3><p class="small">Waves, ECHO, dashboard</p></div>
+                <div class="ph"><div class="when">Months 15–18</div><h3 class="h3">Evaluate and decide</h3><p class="small">Scale, adapt or stop</p></div>
+            </div>
+            <div class="scale">
+                <div class="gate" style="left:33.33%"><i></i><span>Gate · month 6</span></div>
+                <div class="gate" style="left:66.67%"><i></i><span>Gate · month 12</span></div>
+                <div class="gate" style="left:100%; transform:translateX(-100%); text-align:right"><i style="margin-right:0"></i><span>Gate · month 18</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: Assessment 2 implementation plan and success measures.</span></div>
+    <aside class="notes">
+        <p>Implementation runs in four phases with Board decision gates. Phase 0, months 0 to 3, mobilises: appoint an executive sponsor and clinical lead, form the Joint Pathway Governance Group, confirm the three HHS partners, and complete baselines and a data-readiness assessment. Phase 1, months 3 to 6, is co-design with clinicians and families, writing eligibility, escalation and return-to-CHQ criteria, and confirming credentialing under the Clinical Services Capability Framework. Phase 2, months 6 to 15, launches the pathways in waves with protected specialist advice sessions, ECHO cases linked to each pathway, and a monthly dashboard. Phase 3, months 15 to 18, is an independent evaluation and the Board decision to scale, adapt or stop, with an Option 2 business case only if the data-readiness gate is met.</p>
+        <p>Justification: we followed Kotter's sequence. With 68 percent engagement and 14.2 percent vacancies, this change must be co-designed with clinicians, not imposed. The staged design limits clinical, financial and relationship risk.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     15 · IMPLEMENTATION — KPIs
+     ========================================================= -->
+<section class="slide light std" data-section="Implementation">
+    <div class="chrome"><span class="sec"><b>07</b> · Implementation</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>What success looks like at <em>month 18</em></h2></div>
+        <div class="kpi">
+            <div data-a style="--d:1"><span class="what">Eligible follow-up completed locally</span><span class="from"></span><span class="arrow"></span><span class="to">≥ 50%</span></div>
+            <div data-a style="--d:2"><span class="what">Median wait, pilot specialties</span><span class="from">65 days</span><span class="arrow">→</span><span class="to">−10%</span></div>
+            <div data-a style="--d:3"><span class="what">Networked-care KPIs reported</span><span class="from">0 of 7</span><span class="arrow">→</span><span class="to">7 of 7</span></div>
+            <div data-a style="--d:4"><span class="what">Unplanned escalation and adverse events</span><span class="from"></span><span class="arrow"></span><span class="to word">No sustained increase</span></div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: Assessment 2 implementation plan and success measures.</span></div>
+    <aside class="notes">
+        <p>The 18-month targets are: at least 50 percent of eligible follow-up completed locally, a 10 percent reduction in median wait, all seven networked-care KPIs reported, and no sustained rise in unplanned escalation.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     16 · DECISIONS SOUGHT
+     ========================================================= -->
+<section class="slide dark std" data-section="Decisions">
+    <div class="chrome"><span class="sec"><b>08</b> · Decisions and risks</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>Four <em>decisions</em> we ask of the Board</h2></div>
+        <div class="cols cols-4">
+            <div class="step" data-a style="--d:1"><div class="stat" style="font-size:80px">1</div><p class="txt" style="margin-top:22px">Endorse Option 1 for 2026–2028</p></div>
+            <div class="step" data-a style="--d:2"><div class="stat" style="font-size:80px">2</div><p class="txt" style="margin-top:22px">Approve $4.4m, 18-month program with gates at 6, 12, 18 months</p></div>
+            <div class="step" data-a style="--d:3"><div class="stat" style="font-size:80px">3</div><p class="txt" style="margin-top:22px">Seek Service Agreement recognition of the statewide role</p></div>
+            <div class="step" data-a style="--d:4"><div class="stat" style="font-size:80px">4</div><p class="txt" style="margin-top:22px">Defer Option 2 to a month-18 business case; Option 3 to a six-month asset review</p></div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: Assessment 2 risk register and Board decision framework.</span></div>
+    <aside class="notes">
+        <p>To close, we ask the Board for four decisions. One, endorse Option 1 as CHQ's preferred direction for 2026 to 2028. Two, approve the indicative $4.4 million, 18-month program with gates at 6, 12 and 18 months. Three, seek Department of Health agreement to record CHQ's statewide networked role and funding in the Service Agreement, where it is currently a measure to be developed. Four, defer Option 2 to a business case at month 18 and Option 3 to a six-month asset review.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     17 · RISKS
+     ========================================================= -->
+<section class="slide light std" data-section="Decisions">
+    <div class="chrome"><span class="sec"><b>08</b> · Decisions and risks</span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2" data-a>The main risks are <em>manageable</em></h2></div>
+        <div class="rows">
+            <div data-a style="--d:1"><span class="k">Clinical safety</span><p class="txt">CSCF eligibility, credentialing, CATCH escalation, stop rules.</p></div>
+            <div data-a style="--d:2"><span class="k">Specialist workload rises</span><p class="txt">Fund protected sessions first.</p></div>
+            <div data-a style="--d:3"><span class="k">Partner capacity</span><p class="txt">Backfill, right to decline.</p></div>
+            <div data-a style="--d:4"><span class="k">Data gaps</span><p class="txt">Workstream 8 and data-readiness gate.</p></div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: Assessment 2 risk register and Board decision framework.</span></div>
+    <aside class="notes">
+        <p>The main risks are manageable. Clinical safety is controlled by CSCF-based eligibility, credentialing, 24/7 escalation through CATCH and stop rules. Rising specialist workload is addressed by funding protected sessions before any appointment moves. Partner capacity is handled through backfill and the right to decline. Data risk is addressed by Workstream 8 and a data-readiness gate before Option 2.</p>
+        <p>Our assumptions, including partner capacity, funding of advice time outside ABF, and the indicative budget, are stated openly for CHQ to validate.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     18 · CONCLUSION — protect / extend / build
+     ========================================================= -->
+<section class="slide dark std" data-section="Conclusion">
+    <div class="chrome"><span class="sec"><b>09</b> · Conclusion</span><span class="count"></span></div>
+    <div class="body">
+        <div class="cols cols-3">
+            <div class="step" data-a style="--d:0"><div class="kicker">Protect</div><p class="h3" style="margin-top:24px; color:#F0ECE3">Keep complex, high-acuity and genuinely quaternary care <em>concentrated at QCH</em>.</p></div>
+            <div class="step" data-a style="--d:1"><div class="kicker">Extend</div><p class="h3" style="margin-top:24px; color:#F0ECE3">Use networked care, ECHO®, shared-care pathways and local capability to bring appropriate care <em>closer to families</em>.</p></div>
+            <div class="step" data-a style="--d:2"><div class="kicker">Build</div><p class="h3" style="margin-top:24px; color:#F0ECE3">Use the 18-month stage-gated pilot to establish evidence, governance and data foundations for a <em>future network-orchestrator</em> model.</p></div>
+        </div>
+        <p class="lead" data-a style="--d:3; margin-top:90px; color:var(--text-warm)">Option 1 delivers value now — while building CHQ's capability to transform later.</p>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA</span><span>Children's Health Queensland</span></div>
+    <aside class="notes">
+        <p>To conclude, CHQ's strategic challenge is not a choice between statewide reach and quaternary excellence. It is deciding what must remain concentrated at QCH and what can safely be delivered closer to home.</p>
+        <p>Our recommendation therefore has three elements. First, protect quaternary excellence by keeping the most complex and high-acuity care at QCH. Second, extend CHQ's specialist expertise through networked care, ECHO®, shared-care pathways and stronger local capability. Third, build the evidence, governance and data foundations through an 18-month stage-gated pilot.</p>
+        <p>This is why Option 1 delivers value now while preserving the option to transform later. At month 18, CHQ can make an evidence-based decision on whether the conditions are strong enough to progress toward the network-orchestrator model.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     19 · CLOSING LINE + Q&A
+     ========================================================= -->
+<section class="slide dark statement" data-section="Questions">
+    <div class="inner">
+        <div class="kicker" data-a>Our answer to the opening question</div>
+        <div class="rule grow"></div>
+        <p class="quote" data-a style="--d:1; font-size:96px">Extend reach by moving <em>capability</em>, not by moving the specialists.</p>
+        <p class="mono" data-a style="--d:2; margin-top:90px; font-size:20px; color:var(--muted-dark)">Questions &amp; Discussion</p>
+    </div>
+    <aside class="notes">
+        <p>Our answer to the opening question: extend reach by moving capability, not by moving the specialists. Thank you. We welcome your questions.</p>
+    </aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX DIVIDER
+     ========================================================= -->
+<section class="slide dark chapter" data-section="Appendix">
+    <div class="ghost">A–I</div>
+    <div class="inner">
+        <div class="kicker" data-a>For questions</div>
+        <div class="rule grow"></div>
+        <h2 class="h1" data-a style="--d:1">Appendices: method, evidence and <em>implementation detail</em></h2>
+    </div>
+</section>
+
+<!-- =========================================================
+     APPENDIX A · Research method
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix A</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Research method and <em>evidence base</em></h2></div>
+        <ul class="dash app-list">
+            <li><span><b>Primary sources.</b> CHQ Annual Report 2024-25, Master Plan 2021/22-2036/37, Strategic Plan 2024-2028, Services Plan 2018-2028, Digital and Data Strategy 2024-2028, Operational Plan FY2025-26</span></li>
+            <li><span><b>Assessment 1 frameworks.</b> PESTEL, Five Forces and strategic groups, VRIN/VRIO, value chain; CHQ consultation (9 Sep 2026)</span></li>
+            <li><span><b>External evidence.</b> Peer-reviewed evaluations of paediatric telehealth and Project ECHO; SickKids and GOSH benchmarks</span></li>
+            <li><span><b>Analysis methods.</b> Weighted SAF scoring; Monte Carlo sensitivity (10,000 Dirichlet draws); Master Plan capacity scenarios; Mendelow stakeholder mapping; risk register</span></li>
+            <li><span><b>Limits.</b> Scores are team judgement; budget indicative; some studies read from abstracts; refresh KPIs with the 2025-26 Annual Report</span></li>
+        </ul>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span>Children's Health Queensland</span></div>
+    <aside class="notes"><p>Justification: the method combines CHQ's own published documents, our Assessment 1 frameworks and external evidence so each claim is traceable. Stated limits: scores are team judgement, the budget is indicative, some external studies were read from abstracts and should be checked against full texts, and the 2025-26 Annual Report may update the KPIs.</p></aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX B · Options and insights
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix B</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Options and core <em>analytical insights</em></h2></div>
+        <table class="tbl">
+            <thead><tr><th style="width:230px"></th><th>Option 1</th><th>Option 2</th><th>Option 3</th></tr></thead>
+            <tbody>
+                <tr><td>Core idea</td><td>Scale advice, outreach, shared care, local follow-up in 2-3 pathways</td><td>CHQ and HHSs jointly govern statewide pathways, records, dashboard</td><td>Package education, research, IP for external buyers</td></tr>
+                <tr><td>Builds on</td><td>Specialist Online Advice, CATCH, ECHO, Rockhampton and Townsville</td><td>Master Plan fully networked scenario; audiology governance model</td><td>Paid masterclasses; 805 publications; $24.16m research funding</td></tr>
+                <tr><td>Key insight used</td><td>Specialist time is the binding constraint; telehealth 125% of target</td><td>Root cause is absence of governed statewide system</td><td>Expertise is rare and hard to imitate (VRIN)</td></tr>
+                <tr><td>Data need</td><td>Pilot-scale (gap 0.9 pts)</td><td>Statewide, near-real-time (gap 2.4 pts)</td><td>De-identified data and IP rules first</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span>Children's Health Queensland</span></div>
+    <aside class="notes"><p>Justification: each option maps to an insight from the analysis. Option 1 responds to the supplier-power and geographic findings and builds on assets CHQ already runs. Option 2 responds to the operating-model gap but assumes a mandate and data that do not yet exist. Option 3 leverages the VRIN finding on expertise but ignores the capacity constraint. The four mechanisms in Option 1 form a sequence along a child's journey: advice, outreach, shared care, local follow-up. Local follow-up moves the most responsibility and frees the most specialist capacity.</p></aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX C · Evaluation criteria + sensitivity
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix C</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Detailed evaluation and <em>decision criteria</em></h2></div>
+        <div class="cols" style="grid-template-columns: 1.15fr 1fr; gap:72px">
+            <table class="tbl">
+                <thead><tr><th>Criterion</th><th>Weight</th><th>Question and rationale</th></tr></thead>
+                <tbody>
+                    <tr><td>Suitability</td><td class="gold">30%</td><td>Does it fix the specialist bottleneck, growth outside the catchment and the unmeasured network role?</td></tr>
+                    <tr><td>Feasibility</td><td class="gold">25%</td><td>Deliverable in 1-3 years given 14.2% vacancy, near-zero surplus, legacy digital</td></tr>
+                    <tr><td>Acceptability: stakeholders</td><td class="gold">20%</td><td>Families, clinicians, HHSs, Department; CHQ cannot direct HHSs</td></tr>
+                    <tr><td>Acceptability: risk</td><td class="gold">15%</td><td>Clinical, financial, reputational, governance exposure</td></tr>
+                    <tr><td>Value / return</td><td class="gold">10%</td><td>Long-run access, capacity and cost benefit; uncertain for all</td></tr>
+                </tbody>
+            </table>
+            <table class="tbl nums">
+                <thead><tr><th>Scenario</th><th>Opt 1</th><th>Opt 2</th><th>Opt 3</th></tr></thead>
+                <tbody>
+                    <tr><td>Base case</td><td class="gold">3.90</td><td>3.30</td><td>2.60</td></tr>
+                    <tr><td>Suitability-led 45/15/15/10/15</td><td class="gold">3.85</td><td>3.80</td><td>2.40</td></tr>
+                    <tr><td>Equal weights</td><td class="gold">3.80</td><td>3.20</td><td>2.60</td></tr>
+                    <tr><td>Opt 2 feasibility = 4</td><td class="gold">3.90</td><td>3.80</td><td>2.60</td></tr>
+                    <tr><td>Opt 2 feasibility = 5</td><td>3.90</td><td class="gold">4.05</td><td>2.60</td></tr>
+                    <tr><td>10,000 random weights</td><td class="gold">97.8% first</td><td>2.2% first</td><td>0%</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span>Children's Health Queensland</span></div>
+    <aside class="notes"><p>Justification: the criteria follow Johnson et al.'s suitability, acceptability and feasibility tests, with acceptability split and value added. Weights are stated openly so the Board can test them. Sensitivity shows the ranking is robust: Option 2 wins only if its feasibility is lifted to 5, which the pilot is designed to test.</p></aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX D · Modifications and rationale
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix D</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Selected option — <em>modifications</em> and rationale</h2></div>
+        <table class="tbl">
+            <thead><tr><th style="width:560px">Modification</th><th>Why</th><th>Benefit to CHQ and stakeholders</th></tr></thead>
+            <tbody>
+                <tr><td>ECHO-led workforce redesign at the core</td><td>Specialist workforce is the binding constraint</td><td>Specialists focus on quaternary care; GPs, nurses and allied health gain skills and careers</td></tr>
+                <tr><td>Joint Pathway Governance Group</td><td>CHQ cannot direct other HHSs</td><td>Shared accountability; partner buy-in</td></tr>
+                <tr><td>Workstream 8: data foundations and AI assurance ($0.45m)</td><td>0 of 7 networked-care KPIs reported; data maturity 1.9/5</td><td>Measurable network; safe AI; gate for Option 2</td></tr>
+                <tr><td>Capped budget, stage gates, stop rules</td><td>$0.13m surplus; no financial headroom</td><td>Reversible; limits downside; tests $95m capital case</td></tr>
+                <tr><td>Option 2 deferred to month 18; Option 3 to asset review</td><td>Option 2 lacks mandate and data; Option 3 diverts clinicians</td><td>Preserves the option to transform</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span>Children's Health Queensland</span></div>
+    <aside class="notes"><p>Justification: the plain Option 1 would have left fragmentation, unmeasured performance and a workforce constraint untouched. Each modification closes a gap in the analysis. The benefit to CHQ is capacity: three advanced-practice clinicians could provide roughly 4,500 assessments a year (an illustrative assumption), about 1.8 times the 2,474 long-wait list. That releases consultant time for complex new patients, surgical lists and quaternary services.</p></aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX E · Tiered workforce evidence
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix E</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Evidence for the <em>ECHO-led tiered</em> workforce model</h2></div>
+        <table class="tbl">
+            <thead><tr><th style="width:470px">Role</th><th style="width:560px">Function</th><th>Queensland evidence</th></tr></thead>
+            <tbody>
+                <tr><td>GPs and primary care</td><td>Present before referring; manage stable conditions</td><td>ADHD ECHO: self-efficacy 2.6 to 5.4 of 7; SC4C trial: referrals 7.3% to 3.0%</td></tr>
+                <tr><td>Nurse practitioners</td><td>Protocol-based triage; chronic condition clinics</td><td>9 CHQ subspecialties; 85% of clinicians rate a success</td></tr>
+                <tr><td>Nurse navigators</td><td>Named case manager across services</td><td>400-navigator program, gains on all hospital measures</td></tr>
+                <tr><td>Advanced-practice allied health</td><td>First assessment of Cat 2-3 referrals</td><td>Sunshine Coast MPSC-MDT: about 96% managed without surgeon</td></tr>
+                <tr><td>Aboriginal and Torres Strait Islander health practitioners</td><td>Community screening and follow-up</td><td>Deadly Ears: 563 assessments beside 556 ENT-seen children</td></tr>
+                <tr><td>GP-led clinic in QCH ED</td><td>Low-acuity presentations</td><td>About 25% of presentations; ED waits cut 21.6 min</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span>Children's Health Queensland</span></div>
+    <aside class="notes"><p>Justification: every role in the tiered model already works in Queensland, including inside CHQ, so Option 1 scales proven local practice rather than importing an untested model. That is why it scores well on feasibility. Caveat: evidence on patient outcomes for ECHO and eConsult is weaker than evidence on clinician knowledge and practice change (McBain et al. 2019).</p></aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX F · Stakeholder concerns and responses
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix F</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Benefits to CHQ and <em>key stakeholders</em></h2></div>
+        <table class="tbl">
+            <thead><tr><th style="width:470px">Stakeholder</th><th style="width:560px">Risk or concern</th><th>Response built into the plan</th></tr></thead>
+            <tbody>
+                <tr><td>Children and families</td><td>Local care seen as a downgrade; delayed escalation</td><td>Co-designed consent; family choice; guaranteed rapid CHQ review</td></tr>
+                <tr><td>CHQ clinicians</td><td>Advice on top of full clinics; burnout (68% engagement)</td><td>Protected, funded sessions; clinicians co-design pathways</td></tr>
+                <tr><td>Partner HHSs</td><td>Unfunded clinics; liability; recruitment</td><td>Signed agreements covering funding, CSCF scope, right to decline</td></tr>
+                <tr><td>Department of Health</td><td>Precedent for a new funding line</td><td>Pilot as evidence base for Service Agreement role</td></tr>
+                <tr><td>Aboriginal and Torres Strait Islander families</td><td>Culturally unsafe care; widening gaps</td><td>Involve IUIH and community-controlled services; report by population</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span>Children's Health Queensland</span></div>
+    <aside class="notes"><p>Justification: stakeholders were mapped by power and interest (Mendelow 1991). The plan builds a response to each group's main concern. Conflicts are acknowledged: families want continuity while CHQ wants to release specialist capacity, so shared-care plans with scheduled CHQ reviews serve both. Partner HHSs and CHQ may want the same funded work, so CHQ accepts some ABF loss and asks the Department to recognise advice time.</p></aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX G · Implementation plan + budget
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix G</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Detailed <em>implementation</em> plan</h2></div>
+        <div class="cols" style="grid-template-columns: 1.25fr 1fr; gap:80px">
+            <ul class="dash app-list" style="align-self:start">
+                <li><span><b>Pilot pathways.</b> Type 1 diabetes and insulin pumps (Central Queensland); cleft lip and palate follow-up (Townsville); general paediatric and neurology follow-up (West Moreton, Ipswich +3.2% a year)</span></li>
+                <li><span><b>Eight workstreams.</b> Governance; referral front door; advice and virtual care; shared care; workforce redesign and ECHO; coordination, families and equity; data and evaluation; data foundations and AI assurance</span></li>
+                <li><span><b>Networked Care Office.</b> A small office in Strategy and Transformation becomes the nucleus of any later orchestrator role</span></li>
+                <li><span><b>Change approach.</b> Kotter's sequence; early wins from Rockhampton and Townsville</span></li>
+            </ul>
+            <table class="tbl nums" style="align-self:start">
+                <thead><tr><th>Budget line</th><th style="text-align:right">$m</th></tr></thead>
+                <tbody>
+                    <tr><td>Protected specialist advice time</td><td style="text-align:right">1.05</td></tr>
+                    <tr><td>Advanced-practice roles (3.0 FTE)</td><td style="text-align:right">0.68</td></tr>
+                    <tr><td>Nurse navigators (3.0 FTE)</td><td style="text-align:right">0.60</td></tr>
+                    <tr><td>Partner HHS backfill and training</td><td style="text-align:right">0.55</td></tr>
+                    <tr><td>Network data foundations and AI</td><td style="text-align:right">0.45</td></tr>
+                    <tr><td>Program management and analyst</td><td style="text-align:right">0.40</td></tr>
+                    <tr><td>ECHO 2.0 expansion</td><td style="text-align:right">0.35</td></tr>
+                    <tr><td>Telehealth and record configuration</td><td style="text-align:right">0.15</td></tr>
+                    <tr><td>Independent evaluation</td><td style="text-align:right">0.15</td></tr>
+                    <tr class="tot"><td>Total</td><td class="gold" style="text-align:right">4.38</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span>Children's Health Queensland</span></div>
+    <aside class="notes"><p>Justification: the eight workstreams are each anchored in an existing CHQ commitment (Strategic Plan, Operational Plan, Master Plan, Digital and Data Strategy), so the program extends agreed direction. Pathways were chosen for volume, clear eligibility, an existing partnership and alignment with growth, and are to be validated with baseline data. The budget is an indicative $4.38m for CHQ Finance to validate; much of the advanced-practice cost is recoverable through ABF.</p></aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX H · Risks, safeguards, data gate
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix H</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Risks, funding safeguards and <em>data-readiness gate</em></h2></div>
+        <table class="tbl">
+            <thead><tr><th style="width:560px">Risk</th><th style="width:300px">Rating</th><th>Mitigation</th></tr></thead>
+            <tbody>
+                <tr><td>Care moves beyond local capability</td><td>Medium / High</td><td>CSCF eligibility, credentialing, CATCH 24/7, stop rules</td></tr>
+                <tr><td>Specialist workload rises</td><td>High / High</td><td>Fund protected sessions first; track minutes per patient</td></tr>
+                <tr><td>Loss of ABF activity</td><td>High / Medium</td><td>Telehealth review keeps CHQ revenue; refill freed slots; negotiate advice funding</td></tr>
+                <tr><td>Data cannot be shared or linked</td><td>Medium / High</td><td>Data-sharing agreements, privacy impact assessments, The Viewer</td></tr>
+                <tr><td>Unsafe or biased AI</td><td>Low / High</td><td>Silent mode first; clinician decides; AI register</td></tr>
+            </tbody>
+        </table>
+        <p class="small" style="margin-top:34px; color:var(--ink); font-size:22px"><span class="mono" style="font-size:15px; color:var(--gold-deep)">Option 2 gate ·</span> network data set live in 3+ HHSs at 95%+ audited accuracy; all 7 networked-care KPIs reported; data-sharing agreements signed; shared care plan in routine use; platform funded; AI tools risk-assessed.</p>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span>Children's Health Queensland</span></div>
+    <aside class="notes"><p>Justification: the highest risks are specialist workload rising rather than falling and loss of ABF activity. Both are mitigated by design: fund protected sessions before appointments move, and use telehealth provider-end funding and refilled slots. In our illustrative model (3,000 events, 50% shifting, $450 per event) about 80 percent of the revenue impact is offset. Data readiness is 1.9 out of 5 today against 2.8 needed for Option 1 and 4.3 for Option 2, so Option 2 carries an explicit gate.</p></aside>
+</section>
+
+<!-- =========================================================
+     APPENDIX I · Generative AI acknowledgement (verbatim from draft)
+     ========================================================= -->
+<section class="slide light std app" data-section="Appendix">
+    <div class="chrome"><span class="sec"><b>Appendix I</b></span><span class="count"></span></div>
+    <div class="body">
+        <div class="head"><h2 class="h2">Generative AI <em>acknowledgement</em></h2></div>
+        <div class="cols cols-2" style="gap:80px">
+            <div>
+                <div class="kicker" style="margin-bottom:22px">AI tool and nature of use</div>
+                <ul class="dash app-list">
+                    <li><span><b>Tool.</b> OpenAI ChatGPT — GPT-5.6 Sol.</span></li>
+                    <li><span><b>How it was used.</b> To support synthesis of the team's CHQ research, presentation structure, concise slide wording, speaker-note drafting and visual organisation.</span></li>
+                    <li><span><b>Scope.</b> Main presentation slides and appendices. AI was used as an assistive drafting and synthesis tool; it was not treated as an authoritative source of CHQ facts.</span></li>
+                    <li><span><b>Date.</b> September 2026.</span></li>
+                </ul>
+            </div>
+            <div>
+                <div class="kicker" style="margin-bottom:22px">Key prompts and human oversight</div>
+                <ul class="dash app-list" style="font-size:21px">
+                    <li><span>“Consolidate the uploaded CHQ documents into a 12-minute MBA strategy presentation using the final three options and supporting evidence.”</span></li>
+                    <li><span>“Provide speaker notes that justify the strategic analysis, option evaluation, recommendation and implementation plan.”</span></li>
+                    <li><span>“Add relevant appendix slides covering research method, option analysis, evaluation criteria, selected-option rationale, stakeholder benefits and implementation.”</span></li>
+                    <li><span><b>Human oversight.</b> The team reviewed and edited the AI-assisted material, checked factual claims against the cited CHQ and external sources, and retains responsibility for the analysis, strategic judgement and final submission.</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="foot"><span>MGTS7803 · UQ MBA · Appendix</span><span class="src">Structured to reflect UQ guidance: identify the AI tool, use, prompts, affected parts and date. MGTS7803 task-specific instructions should be checked before submission.</span></div>
+</section>
+
+</main>
+</div>
+
+<!-- Chrome outside the stage -->
+<div class="progress" id="progress"></div>
+<div class="deck-controls" id="counter"></div>
+<div class="notes-panel" id="notesPanel" aria-live="polite"></div>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">Edit</button>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Keys: ← → Space PgUp PgDn Home End · N = speaker notes · E = edit
+   =========================================== */
+class SlidePresentation {
+    constructor() {
+        this.slides = [...document.querySelectorAll('.slide')];
+        this.stage = document.getElementById('deckStage');
+        this.notesPanel = document.getElementById('notesPanel');
+        this.current = 0;
+        this.fillCounters();
+        this.setupStageScale();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        const fromHash = parseInt(location.hash.slice(1), 10);
+        this.show(isNaN(fromHash) ? 0 : fromHash - 1);
+    }
+
+    /* "03 / 28" in every chrome bar */
+    fillCounters() {
+        const total = String(this.slides.length).padStart(2, '0');
+        this.slides.forEach((s, i) => s.querySelectorAll('.count').forEach(c => c.textContent = `${String(i + 1).padStart(2, '0')} / ${total}`));
+    }
+
+    /* Scale the fixed 1920×1080 stage to fit the window */
+    setupStageScale() {
+        const scale = () => {
+            const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+            this.stage.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px, ${(innerHeight - 1080 * k) / 2}px) scale(${k})`;
+        };
+        scale();
+        addEventListener('resize', scale);
+    }
+
+    setupKeyboardNav() {
+        document.addEventListener('keydown', e => {
+            if (e.target.isContentEditable) return;
+            if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); this.show(this.current + 1); }
+            else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); this.show(this.current - 1); }
+            else if (e.key === 'Home') this.show(0);
+            else if (e.key === 'End') this.show(this.slides.length - 1);
+            else if (e.key === 'n' || e.key === 'N') this.notesPanel.classList.toggle('open');
+        });
+    }
+
+    setupTouchNav() {
+        let x0 = null;
+        addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+        addEventListener('touchend', e => {
+            if (x0 === null) return;
+            const dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 40) this.show(this.current + (dx < 0 ? 1 : -1));
+            x0 = null;
+        });
+    }
+
+    setupWheelNav() {
+        let lock = false;
+        addEventListener('wheel', e => {
+            if (lock || this.notesPanel.contains(e.target) || Math.abs(e.deltaY) < 25) return;
+            lock = true; setTimeout(() => lock = false, 700);
+            this.show(this.current + (e.deltaY > 0 ? 1 : -1));
+        }, { passive: true });
+    }
+
+    show(i) {
+        this.current = Math.max(0, Math.min(i, this.slides.length - 1));
+        this.slides.forEach((s, j) => {
+            s.classList.toggle('active', j === this.current);
+            s.classList.toggle('visible', j === this.current);
+        });
+        const n = this.current + 1, t = this.slides.length;
+        document.getElementById('progress').style.width = `${(n / t) * 100}%`;
+        document.getElementById('counter').textContent = `${n} / ${t} · N notes`;
+        history.replaceState(null, '', `#${n}`);
+        const notes = this.slides[this.current].querySelector('.notes');
+        this.notesPanel.innerHTML = `<h4>Speaker notes · ${n} / ${t}</h4>` + (notes ? notes.innerHTML : '<p>No notes for this slide.</p>');
+    }
+}
+const deck = new SlidePresentation();
+
+/* ===========================================
+   INLINE EDITOR — E to toggle, Ctrl/Cmd+S to download edited file
+   Edits autosave to localStorage in this browser.
+   =========================================== */
+const editor = {
+    isActive: false,
+    key: 'chq-deck-edits-v1',
+    targets() { return document.querySelectorAll('.slide h1, .slide h2, .slide h3, .slide p, .slide li > span, .slide td, .slide th, .slide .kicker, .slide .stat, .slide .tnum, .slide .k, .slide .what, .slide .to, .slide .from'); },
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        document.body.classList.toggle('editing', this.isActive);
+        document.getElementById('editToggle').classList.toggle('active', this.isActive);
+        document.getElementById('editToggle').textContent = this.isActive ? 'Done' : 'Edit';
+        this.targets().forEach(el => el.contentEditable = this.isActive);
+        if (!this.isActive) this.save();
+    },
+    save() {
+        try { localStorage.setItem(this.key, JSON.stringify([...this.targets()].map(el => el.innerHTML))); } catch (e) {}
+    },
+    restore() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(this.key) || 'null');
+            const els = [...this.targets()];
+            if (saved && saved.length === els.length) els.forEach((el, i) => el.innerHTML = saved[i]);
+        } catch (e) {}
+    },
+    download() {
+        this.targets().forEach(el => el.removeAttribute('contenteditable'));
+        document.body.classList.remove('editing');
+        const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+        const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([html], { type: 'text/html' })), download: 'chq-strategy-deck.html' });
+        a.click();
+        if (this.isActive) { document.body.classList.add('editing'); this.targets().forEach(el => el.contentEditable = true); }
+    }
+};
+editor.restore();
+document.addEventListener('input', () => editor.save());
+
+const hotzone = document.getElementById('editHotzone');
+const editToggle = document.getElementById('editToggle');
+let hideTimeout = null;
+editToggle.addEventListener('click', () => editor.toggleEditMode());
+hotzone.addEventListener('click', () => editor.toggleEditMode());
+hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); editToggle.classList.add('show'); });
+hotzone.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); });
+editToggle.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+editToggle.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); });
+document.addEventListener('keydown', e => {
+    if ((e.key === 'e' || e.key === 'E') && !e.target.isContentEditable) editor.toggleEditMode();
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); editor.download(); }
+});
+</script>
+</body>
+</html>
