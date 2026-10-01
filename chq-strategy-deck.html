@@ -173,8 +173,8 @@ svg {
 /* Standard slide = chrome row / body / foot row */
 .std {
     display: grid !important;
-    grid-template-rows: auto 1fr auto;
-    padding: var(--pad-y) var(--pad-x);
+    grid-template-rows: auto 1fr auto auto;
+    padding: 52px var(--pad-x) 30px;
 }
 .std > * { position: relative; }  /* sit above grid texture */
 .body { min-height: 0; display: flex; flex-direction: column; justify-content: center; }
@@ -203,9 +203,9 @@ svg {
 .rule { width: 36px; height: 1px; background: var(--gold); margin: 26px 0 30px; }
 .rule.long { width: 120px; }
 
-.display { font: 400 116px/1.02 var(--serif); letter-spacing: -.02em; }
-.h1 { font: 400 96px/1.06 var(--serif); letter-spacing: -.015em; }
-.h2 { font: 400 68px/1.1 var(--serif); letter-spacing: -.01em; }
+.display { font: 400 124px/1.02 var(--serif); letter-spacing: -.02em; }
+.h1 { font: 400 108px/1.06 var(--serif); letter-spacing: -.015em; }
+.h2 { font: 400 84px/1.08 var(--serif); letter-spacing: -.01em; }
 .h3 { font: 500 38px/1.22 var(--serif); }
 .display em, .h1 em, .h2 em, .h3 em, .quote em { font-style: italic; color: var(--gold); }
 .light .display em, .light .h1 em, .light .h2 em, .light .h3 em, .light .quote em { color: var(--gold-deep); }
@@ -260,7 +260,7 @@ svg {
 .chapter .ghost { position: absolute; right: 120px; bottom: -80px; font: italic 300 560px/1 var(--serif); color: rgba(200,168,112,.06); pointer-events: none; }
 
 .statement .inner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1480px; }
-.statement .quote { font: 400 78px/1.2 var(--serif); letter-spacing: -.01em; color: #F0ECE3; }
+.statement .quote { font: 400 88px/1.18 var(--serif); letter-spacing: -.01em; color: #F0ECE3; }
 .light.statement .quote { color: var(--ink); }
 .statement .qmark { font: 300 200px/0.6 var(--serif); color: var(--gold); display: block; margin-bottom: 30px; }
 
@@ -287,8 +287,8 @@ svg {
 .light .rows .k em { color: var(--gold-deep); }
 
 /* Headline block at top of a standard slide body */
-.head { margin-bottom: 56px; }
-.head .h2 { max-width: 1500px; }
+.head { margin-bottom: 50px; }
+.head .h2 { max-width: 1632px; }
 
 /* ===========================================
    COMPONENT: BAR CHART (demand vs population)
@@ -375,12 +375,39 @@ svg {
 .tbl.nums td:not(:first-child) { font-family: var(--serif); font-size: 24px; }
 .tbl tr.tot td { border-top: 2px solid var(--ink); font-weight: 600; }
 .tbl .gold { color: var(--gold-deep); font-weight: 600; }
-.app .h2 { font-size: 54px; }
+.app .h2 { font-size: 68px; }
 .app .head { margin-bottom: 40px; }
 .app-list li { font-size: 23px; padding: 12px 0; line-height: 1.45; }
 .app-list b { font-family: var(--serif); font-weight: 600; font-size: 25px; }
 .app-list.big li { font-size: 28px; padding: 16px 0; }
 .app-list.big b { font-size: 30px; }
+
+
+/* ===========================================
+   JOURNEY BAR — where this slide sits in the talk
+   Injected by JS at the bottom of every slide; current section in gold.
+   Click a stage to jump to it.
+   =========================================== */
+.journey { display: flex; align-items: center; gap: 14px; margin-top: 22px;
+    font: 500 14px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.slide:not(.std) .journey { position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: 30px; margin: 0; }
+.journey a { display: flex; align-items: center; gap: 10px; white-space: nowrap; cursor: pointer; text-decoration: none; color: var(--hint-dark); transition: color .2s; }
+.journey a i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid currentColor; flex: none; }
+.journey a.done { color: var(--muted-dark); }
+.journey a.done i { background: currentColor; }
+.journey a.now { color: var(--gold); }
+.journey a.now i { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 4px rgba(200,168,112,.22); }
+.journey a:hover { color: var(--gold); }
+.journey .sep { flex: 1; height: 1px; min-width: 12px; background: var(--border-dark); }
+.journey .sep.done { background: var(--muted-dark); opacity: .6; }
+.journey .sep.appx { background: none; border-top: 1px dashed var(--border-dark); }
+.light .journey a { color: var(--hint-light); }
+.light .journey a.done { color: var(--muted-light); }
+.light .journey a.now { color: var(--gold-deep); }
+.light .journey a.now i { background: var(--gold-deep); border-color: var(--gold-deep); }
+.light .journey .sep { background: var(--border-light); }
+.light .journey .sep.done { background: var(--muted-light); opacity: .45; }
+.light .journey .sep.appx { background: none; border-top-color: var(--border-light); }
 
 /* ===========================================
    SPEAKER NOTES — hidden in slides, shown in a panel (press N)
@@ -1064,10 +1091,10 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
         <div style="max-width:1400px">
                 <div class="kicker" style="margin-bottom:22px">AI tool and nature of use</div>
                 <ul class="dash app-list big">
-                    <li><span><b>Tool.</b> OpenAI ChatGPT — GPT-5.6 Sol.</span></li>
-                    <li><span><b>How it was used.</b> To support synthesis of the team's CHQ research, presentation structure, concise slide wording, speaker-note drafting and visual organisation.</span></li>
-                    <li><span><b>Scope.</b> Main presentation slides and appendices. AI was used as an assistive drafting and synthesis tool; it was not treated as an authoritative source of CHQ facts.</span></li>
-                    <li><span><b>Date.</b> September 2026.</span></li>
+                    <li><span><b>Tool.</b> Anthropic Claude, used through Claude Code.</span></li>
+                    <li><span><b>How it was used.</b> To redesign the team's draft presentation: slide structure for speaker-led delivery, visual design and layout, charts, scorecard and timeline graphics, and placing the team's speaker notes on each slide.</span></li>
+                    <li><span><b>Scope.</b> Main presentation slides and appendices. Claude was used as an assistive design and formatting tool; the analysis, figures and sources are the team's, and it was not treated as an authoritative source of CHQ facts.</span></li>
+                    <li><span><b>Date.</b> September–October 2026.</span></li>
                 </ul>
         </div>
     </div>
@@ -1168,12 +1195,49 @@ class SlidePresentation {
 const deck = new SlidePresentation();
 
 /* ===========================================
+   JOURNEY BAR — built from each slide's data-section
+   =========================================== */
+const JOURNEY = [
+    ['Challenge', ['The challenge']], ['Analysis', ['Analysis']], ['Options', ['Options']],
+    ['Evaluation', ['Evaluation']], ['Recommendation', ['Recommendation']], ['Value', ['Value']],
+    ['Implementation', ['Implementation']], ['Decisions & risks', ['Decisions']],
+    ['Conclusion', ['Conclusion', 'Questions']], ['Appendix', ['Appendix']]
+];
+(function buildJourney() {
+    const slides = [...document.querySelectorAll('.slide')];
+    const stageOf = s => JOURNEY.findIndex(([, secs]) => secs.includes(s.dataset.section));
+    const firstSlide = JOURNEY.map((_, k) => slides.findIndex(s => stageOf(s) === k));
+    slides.forEach(slide => {
+        const cur = stageOf(slide);
+        const nav = document.createElement('nav');
+        nav.className = 'journey';
+        nav.setAttribute('aria-label', 'Presentation journey');
+        JOURNEY.forEach(([label], k) => {
+            if (k > 0) {
+                const sep = document.createElement('span');
+                sep.className = 'sep' + (k === JOURNEY.length - 1 ? ' appx' : k <= cur ? ' done' : '');
+                nav.appendChild(sep);
+            }
+            const a = document.createElement('a');
+            a.className = k === cur ? 'now' : k < cur ? 'done' : 'next';
+            a.innerHTML = '<i></i>' + label;
+            if (k === cur) a.setAttribute('aria-current', 'step');
+            a.addEventListener('click', () => deck.show(firstSlide[k]));
+            nav.appendChild(a);
+        });
+        const foot = slide.querySelector(':scope > .foot');
+        foot ? foot.after(nav) : slide.appendChild(nav);
+    });
+})();
+
+
+/* ===========================================
    INLINE EDITOR — E to toggle, Ctrl/Cmd+S to download edited file
    Edits autosave to localStorage in this browser.
    =========================================== */
 const editor = {
     isActive: false,
-    key: 'chq-deck-edits-v1',
+    key: 'chq-deck-edits-v2',
     targets() { return document.querySelectorAll('.slide h1, .slide h2, .slide h3, .slide p, .slide li > span, .slide td, .slide th, .slide .kicker, .slide .stat, .slide .tnum, .slide .k, .slide .what, .slide .to, .slide .from'); },
     toggleEditMode() {
         this.isActive = !this.isActive;
