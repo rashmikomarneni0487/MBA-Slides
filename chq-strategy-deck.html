@@ -19,20 +19,39 @@
    Gold is the ONLY accent: rules, italic emphasis, numerals.
    =========================================== */
 :root {
-    --navy: #1C2644;
-    --navy-alt: #232F55;
-    --cream: #F0ECE3;
-    --cream-alt: #E6E0D4;
-    --text-warm: #E2DCD0;
-    --muted-dark: #8A96A8;
-    --hint-dark: #5E6A80;
-    --ink: #1A2030;
-    --muted-light: #5A6270;
-    --hint-light: #8E949C;
-    --gold: #C8A870;
-    --gold-deep: #A8864A;   /* gold tuned for legibility on cream */
-    --border-dark: #2E3D5C;
-    --border-light: #CAC4B4;
+    /* Palette sampled from the team's MBA presentation template */
+    --magenta: #9E4A8C;
+    --plum: #7C3F6B;
+    --teal: #2E8E99;      /* template teal #4AADB7, deepened for text legibility */
+    --teal-soft: #4AADB7;
+    --orange: #E2621B;    /* template orange #EE6A20 */
+    --green: #6F9420;     /* template green #8DB12E, deepened for text legibility */
+    --green-soft: #8DB12E;
+    --pink: #E78DAC;
+    --navy-ink: #003F6D;  /* template heading/text navy */
+
+    /* Surfaces: off-white plus the template's pastel tints */
+    --cream: #F5F2ED;
+    --tint-blue: #DFEAF0;
+    --tint-mint: #DCEDE3;
+    --tint-lav: #E6DDEC;
+
+    /* Text and rules (all slides are light surfaces now) */
+    --ink: var(--navy-ink);
+    --muted-light: #3F5F7A;
+    --hint-light: #7C90A3;
+    --border-light: rgba(0, 63, 109, 0.16);
+    /* Legacy dark-surface tokens mapped to light equivalents */
+    --navy: #003F6D;
+    --text-warm: var(--ink);
+    --muted-dark: var(--muted-light);
+    --hint-dark: var(--hint-light);
+    --border-dark: var(--border-light);
+
+    /* Accent roles: magenta leads, the others rotate across cards */
+    --gold: var(--magenta);
+    --gold-deep: var(--magenta);
+    --acc: var(--magenta);
 
     --serif: 'Source Serif 4', Georgia, serif;
     --sans: 'DM Sans', system-ui, sans-serif;
@@ -42,7 +61,7 @@
     --pad-y: 64px;
 
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
-    --stage-bg: #0F1526;
+    --stage-bg: #E3DED6;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -156,19 +175,15 @@ svg {
 }
 
 /* ===========================================
-   SURFACES — navy (dark) and cream (light)
+   SURFACES — off-white and pastel tints (blue, mint, lavender) from the template
    Dark slides carry the near-invisible 80px grid fingerprint.
    =========================================== */
 .slide { font-family: var(--sans); transition: opacity .45s ease, visibility .45s; }
-.slide.dark  { background: var(--navy);  color: var(--text-warm); }
 .slide.light { background: var(--cream); color: var(--ink); }
-.slide.dark::before {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
-    background-image:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 80px 80px;
-}
+.slide.tint-blue { background: var(--tint-blue); }
+.slide.tint-mint { background: var(--tint-mint); }
+.slide.tint-lav  { background: var(--tint-lav); }
+
 
 /* Standard slide = chrome row / body / foot row */
 .std {
@@ -200,7 +215,7 @@ svg {
    =========================================== */
 .kicker { font: 500 18px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
 .light .kicker { color: var(--gold-deep); }
-.rule { width: 36px; height: 1px; background: var(--gold); margin: 26px 0 30px; }
+.rule { width: 48px; height: 3px; background: var(--orange); margin: 26px 0 30px; }
 .rule.long { width: 120px; }
 
 .display { font: 400 124px/1.02 var(--serif); letter-spacing: -.02em; }
@@ -257,12 +272,40 @@ svg {
 
 .chapter .inner { position: absolute; left: var(--pad-x); top: 50%; transform: translateY(-50%); width: 1400px; }
 .chapter .num { font: 300 220px/0.9 var(--serif); color: var(--gold); letter-spacing: -.03em; }
-.chapter .ghost { position: absolute; right: 120px; bottom: -80px; font: italic 300 560px/1 var(--serif); color: rgba(200,168,112,.06); pointer-events: none; }
+.chapter .ghost { position: absolute; right: 120px; bottom: -80px; font: italic 300 560px/1 var(--serif); color: rgba(158,74,140,.08); pointer-events: none; }
 
 .statement .inner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1480px; }
-.statement .quote { font: 400 88px/1.18 var(--serif); letter-spacing: -.01em; color: #F0ECE3; }
+.statement .quote { font: 400 88px/1.18 var(--serif); letter-spacing: -.01em; color: var(--ink); }
 .light.statement .quote { color: var(--ink); }
 .statement .qmark { font: 300 200px/0.6 var(--serif); color: var(--gold); display: block; margin-bottom: 30px; }
+
+
+/* ===========================================
+   ROTATING ACCENTS — template's teal / orange / green / magenta
+   Each card in a row takes the next colour; its rule, numeral and label follow.
+   =========================================== */
+.cols > :nth-child(4n+1) { --acc: var(--teal); }
+.cols > :nth-child(4n+2) { --acc: var(--orange); }
+.cols > :nth-child(4n+3) { --acc: var(--green); }
+.cols > :nth-child(4n+4) { --acc: var(--magenta); }
+.cols > .tile .stat, .cols > .step .stat, .cols > .tile .tnum, .cols > .step > .kicker, .cols > .step .tnum { color: var(--acc); }
+.cols-2 > * { --acc: var(--magenta); }
+.app .cols > * { --acc: var(--magenta); }
+
+/* Decorative organic shapes (cover, statements, divider), echoing the template */
+.cover::before, .cover::after, .statement::before, .statement::after, .chapter::before, .chapter::after {
+    content: ""; position: absolute; pointer-events: none; z-index: 0;
+}
+.cover::before { left: -150px; top: -170px; width: 300px; height: 280px; background: var(--magenta); border-radius: 58% 42% 63% 37% / 46% 55% 45% 54%; }
+.cover::after  { right: -250px; bottom: 70px; width: 520px; height: 600px; background: var(--teal-soft); border-radius: 46% 54% 38% 62% / 55% 38% 62% 45%; }
+.cover .deco-dot { position: absolute; right: 120px; bottom: 700px; width: 70px; height: 70px; border-radius: 50%; background: var(--green-soft); }
+.cover .deco-line { position: absolute; left: var(--pad-x); top: 196px; width: 110px; height: 4px; background: var(--orange); box-shadow: 0 -14px 0 -1px var(--magenta); }
+.statement::before, .chapter::before { right: -190px; top: -210px; width: 470px; height: 440px; background: var(--magenta); border-radius: 55% 45% 60% 40% / 45% 58% 42% 55%; opacity: .9; }
+.statement::after, .chapter::after { left: -210px; bottom: 60px; width: 400px; height: 380px; background: var(--teal-soft); border-radius: 40% 60% 45% 55% / 55% 45% 55% 45%; opacity: .85; }
+.tint-mint.statement::before { background: var(--orange); }
+.tint-blue.statement::after { background: var(--green-soft); }
+.cover > *, .statement > *, .chapter > * { position: relative; z-index: 1; }
+.cover .top, .cover .main, .cover .bot, .statement .inner, .chapter .inner, .slide:not(.std) .journey { position: absolute; z-index: 1; }
 
 /* ===========================================
    LAYOUT: COLUMNS, STAT TILES, ROWS
@@ -271,12 +314,12 @@ svg {
 .cols-2 { grid-template-columns: 1fr 1fr; }
 .cols-3 { grid-template-columns: repeat(3, 1fr); }
 .cols-4 { grid-template-columns: repeat(4, 1fr); gap: 48px; }
-.tile { border-top: 1px solid var(--border-dark); padding-top: 34px; }
-.light .tile { border-color: var(--border-light); }
+.tile { border-top: 6px solid var(--acc); padding-top: 34px; }
+
 .tile .tnum { font: 500 16px/1 var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; margin-bottom: 26px; }
 .light .tile .tnum { color: var(--gold-deep); }
 .tile .h3 { margin-bottom: 18px; }
-.step { border-top: 2px solid var(--gold); padding-top: 30px; }
+.step { border-top: 6px solid var(--acc); padding-top: 30px; }
 
 .rows > div { display: grid; grid-template-columns: 420px 1fr; gap: 60px; padding: 26px 0; border-top: 1px solid var(--border-dark); align-items: baseline; }
 .light .rows > div { border-color: var(--border-light); }
@@ -297,8 +340,14 @@ svg {
 .bar-row { display: grid; grid-template-columns: 300px 1fr 150px; align-items: center; gap: 30px; }
 .bar-row .lbl { font: 400 28px/1.2 var(--sans); color: var(--text-warm); }
 .bar-track { height: 54px; position: relative; }
-.bar-fill { height: 100%; background: var(--hint-dark); }
-.bar-fill.gold { background: var(--gold); }
+.bar-fill { height: 100%; background: #A9B7C3; }
+.bar-fill.gold { background: var(--acc); }
+/* nth-of-type counts the chart label div first, so bars are 3rd–5th */
+.bar-row:nth-of-type(3) { --acc: var(--teal); }
+.bar-row:nth-of-type(4) { --acc: var(--magenta); }
+.bar-row:nth-of-type(5) { --acc: var(--orange); }
+.bar-row .val { color: var(--acc) !important; }
+.bar-row.base { --acc: var(--hint-light); }
 .bar-row .val { font: 600 52px/1 var(--serif); color: var(--gold); letter-spacing: -.02em; }
 .bar-row.base .val { color: var(--muted-dark); }
 .axis { display: grid; grid-template-columns: 300px 1fr 150px; gap: 30px; }
@@ -313,7 +362,7 @@ svg {
 .score td { padding: 20px 24px; border-top: 1px solid var(--border-light); font-size: 27px; vertical-align: middle; }
 .score td:first-child { padding-left: 0; }
 .score td .w { font: 500 17px var(--mono); color: var(--hint-light); letter-spacing: .1em; margin-left: 12px; }
-.score .o1 { background: rgba(200,168,112,.12); }
+.score .o1 { background: rgba(158,74,140,.10); }
 .score .cell { display: flex; align-items: center; gap: 18px; }
 .score .n { font: 600 34px/1 var(--serif); width: 28px; }
 .pips { display: flex; gap: 6px; }
@@ -330,20 +379,21 @@ svg {
 .share { display: flex; height: 70px; width: 100%; }
 .share div { height: 100%; }
 .share .a { background: var(--gold); width: 97.8%; }
-.share .b { background: var(--muted-dark); width: 2.2%; }
+.share .b { background: var(--teal-soft); width: 2.2%; }
 
 /* ===========================================
    COMPONENT: PHASE TIMELINE (18 months, gates)
    =========================================== */
 .tl { position: relative; margin-top: 30px; }
 .tl .track { display: grid; grid-template-columns: 3fr 3fr 9fr 3fr; }
-.tl .ph { border-top: 2px solid var(--gold); padding: 30px 30px 0 0; position: relative; }
+.tl .ph { border-top: 6px solid var(--acc); padding: 30px 30px 0 0; position: relative; }
+.tl .ph:nth-child(1) { --acc: var(--teal); } .tl .ph:nth-child(2) { --acc: var(--orange); } .tl .ph:nth-child(3) { --acc: var(--green); } .tl .ph:nth-child(4) { --acc: var(--magenta); }
 .tl .ph + .ph { padding-left: 30px; border-left: 1px solid var(--border-dark); }
-.tl .ph .when { font: 500 16px/1 var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; }
+.tl .ph .when { font: 500 16px/1 var(--mono); letter-spacing: .16em; color: var(--acc); text-transform: uppercase; }
 .tl .ph .h3 { margin: 18px 0 14px; }
 .tl .scale { position: relative; height: 70px; margin-top: 50px; border-top: 1px solid var(--border-dark); }
 .tl .gate { position: absolute; top: -8px; transform: translateX(-50%); text-align: center; }
-.tl .gate i { display: block; width: 15px; height: 15px; border-radius: 50%; background: var(--gold); margin: 0 auto 14px; }
+.tl .gate i { display: block; width: 15px; height: 15px; border-radius: 50%; background: var(--orange); margin: 0 auto 14px; }
 .tl .gate span { font: 500 15px/1.3 var(--mono); letter-spacing: .12em; color: var(--muted-dark); text-transform: uppercase; white-space: nowrap; }
 
 /* ===========================================
@@ -354,7 +404,7 @@ svg {
 .kpi .what { font: 400 34px/1.25 var(--serif); }
 .kpi .from { font: 500 20px var(--mono); color: var(--hint-light); letter-spacing: .1em; text-align: right; }
 .kpi .arrow { text-align: center; color: var(--border-light); font-size: 34px; }
-.kpi .to { font: 600 52px/1 var(--serif); color: var(--gold-deep); letter-spacing: -.02em; }
+.kpi .to { font: 600 52px/1 var(--serif); color: var(--teal); letter-spacing: -.02em; }
 .kpi .to.word { font-size: 32px; font-style: italic; font-weight: 400; }
 
 /* ===========================================
@@ -362,7 +412,8 @@ svg {
    =========================================== */
 .path { display: grid; grid-template-columns: 90px 1fr auto; align-items: baseline; padding: 30px 0; border-top: 1px solid var(--border-dark); }
 .path:last-child { border-bottom: 1px solid var(--border-dark); }
-.path .i { font: 500 18px var(--mono); color: var(--gold); letter-spacing: .14em; }
+.path .i { font: 600 18px var(--mono); color: var(--acc); letter-spacing: .14em; }
+.path:nth-child(1) { --acc: var(--teal); } .path:nth-child(2) { --acc: var(--orange); } .path:nth-child(3) { --acc: var(--green); }
 .path .where { font: 500 18px var(--mono); color: var(--muted-dark); letter-spacing: .16em; text-transform: uppercase; }
 
 /* ===========================================
@@ -396,7 +447,7 @@ svg {
 .journey a.done { color: var(--muted-dark); }
 .journey a.done i { background: currentColor; }
 .journey a.now { color: var(--gold); }
-.journey a.now i { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 4px rgba(200,168,112,.22); }
+.journey a.now i { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 4px rgba(158,74,140,.2); }
 .journey a:hover { color: var(--gold); }
 .journey .sep { flex: 1; height: 1px; min-width: 12px; background: var(--border-dark); }
 .journey .sep.done { background: var(--muted-dark); opacity: .6; }
@@ -415,18 +466,18 @@ svg {
 .notes { display: none; }
 .notes-panel {
     position: fixed; left: 0; right: 0; bottom: 0; max-height: 38vh; overflow-y: auto;
-    background: rgba(15,21,38,.97); color: var(--text-warm); border-top: 1px solid var(--gold);
+    background: rgba(0,40,70,.97); color: #F1F4F7; border-top: 3px solid var(--magenta);
     padding: 22px 32px 30px; font: 400 17px/1.6 var(--sans); z-index: 2000;
     transform: translateY(100%); transition: transform .35s var(--ease);
 }
 .notes-panel.open { transform: none; }
-.notes-panel h4 { font: 500 12px/1 var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; margin-bottom: 12px; }
+.notes-panel h4 { font: 500 12px/1 var(--mono); letter-spacing: .16em; color: var(--pink); text-transform: uppercase; margin-bottom: 12px; }
 .notes-panel p { margin-bottom: 10px; max-width: 1100px; }
 
 /* ===========================================
    DECK CHROME OUTSIDE THE STAGE — progress + counter
    =========================================== */
-.progress { position: fixed; left: 0; top: 0; height: 3px; background: var(--gold); z-index: 1500; transition: width .4s var(--ease); }
+.progress { position: fixed; left: 0; top: 0; height: 4px; background: linear-gradient(90deg, var(--teal-soft), var(--green-soft), var(--orange), var(--magenta)); z-index: 1500; transition: width .4s var(--ease); }
 .deck-controls { font: 500 12px/1 var(--mono); letter-spacing: .16em; color: var(--muted-dark); opacity: .0; transition: opacity .3s; }
 body:hover .deck-controls { opacity: .8; }
 
@@ -435,9 +486,9 @@ body:hover .deck-controls { opacity: .8; }
    =========================================== */
 .edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
 .edit-toggle { position: fixed; top: 16px; left: 16px; z-index: 10001; opacity: 0; pointer-events: none; transition: opacity .3s ease;
-    background: var(--navy); color: var(--gold); border: 1px solid var(--gold); font: 500 12px var(--mono); letter-spacing: .14em; padding: 10px 14px; cursor: pointer; text-transform: uppercase; }
+    background: var(--navy); color: #fff; border: 1px solid var(--magenta); font: 500 12px var(--mono); letter-spacing: .14em; padding: 10px 14px; cursor: pointer; text-transform: uppercase; }
 .edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
-body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5); outline-offset: 4px; }
+body.editing [contenteditable="true"] { outline: 1px dashed rgba(158,74,140,.5); outline-offset: 4px; }
 </style>
 </head>
 <body>
@@ -447,7 +498,8 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      01 · COVER
      ========================================================= -->
-<section class="slide dark cover" data-section="Cover">
+<section class="slide light cream-bg cover" data-section="Cover">
+    <i class="deco-dot"></i>
     <div class="top" data-a><span>Children's Health Queensland</span><span>Board briefing · 29.09.2026</span></div>
     <div class="main">
         <div class="rule long grow"></div>
@@ -465,7 +517,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      02 · CHALLENGE — core question (statement)
      ========================================================= -->
-<section class="slide dark statement" data-section="The challenge">
+<section class="slide light tint-lav statement" data-section="The challenge">
     <div class="inner">
         <div class="kicker" data-a>01 · The strategic challenge</div>
         <div class="rule grow"></div>
@@ -514,7 +566,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      04 · ANALYSIS — demand vs population chart
      ========================================================= -->
-<section class="slide dark std" data-section="Analysis">
+<section class="slide light tint-blue std" data-section="Analysis">
     <div class="chrome"><span class="sec"><b>02</b> · Analysis</span><span class="count"></span></div>
     <div class="body">
         <div class="head"><h2 class="h2" data-a>Demand is growing <em>two to four times</em> faster than the children CHQ serves</h2></div>
@@ -558,7 +610,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      06 · INSIGHT (statement)
      ========================================================= -->
-<section class="slide dark statement" data-section="Analysis">
+<section class="slide light tint-mint statement" data-section="Analysis">
     <div class="inner">
         <div class="kicker" data-a>The insight we carry forward</div>
         <div class="rule grow"></div>
@@ -634,7 +686,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      09 · ROBUSTNESS
      ========================================================= -->
-<section class="slide dark std" data-section="Evaluation">
+<section class="slide light tint-blue std" data-section="Evaluation">
     <div class="chrome"><span class="sec"><b>04</b> · Evaluation</span><span class="count"></span></div>
     <div class="body">
         <div class="cols cols-2" style="align-items:end; gap:110px">
@@ -642,10 +694,10 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
                 <div class="kicker">Robustness · 10,000 random weightings</div>
                 <div class="rule"></div>
                 <div class="stat" style="font-size:240px">97.8<small>%</small></div>
-                <p class="lead" style="margin-top:26px; color:var(--text-warm)">of weightings rank Option 1 first.</p>
+                <p class="lead" style="margin-top:26px; color:var(--ink)">of weightings rank Option 1 first.</p>
             </div>
             <div data-a style="--d:1">
-                <p class="h3" style="color:#F0ECE3">Option 2 wins only if its feasibility reaches <em>5 out of 5</em>.</p>
+                <p class="h3" style="color:var(--ink)">Option 2 wins only if its feasibility reaches <em>5 out of 5</em>.</p>
                 <p class="lead" style="margin-top:26px">That needs a mandate, shared data and funding — precisely what an Option 1 pilot would help secure.</p>
             </div>
         </div>
@@ -653,7 +705,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
             <div class="share"><div class="a grow"></div><div class="b"></div></div>
             <div style="display:flex; justify-content:space-between; margin-top:18px" class="mono small"><span style="color:var(--gold)">Option 1 · 97.8%</span><span>Option 2 · 2.2% &nbsp;·&nbsp; Option 3 · 0%</span></div>
         </div>
-        <p class="h3" data-a style="--d:3; margin-top:80px; max-width:1640px; color:#F0ECE3">Option 2 is the best <em>long-term</em> fit; Option 1 is the best <em>deliverable</em> fit — and the route to Option 2.</p>
+        <p class="h3" data-a style="--d:3; margin-top:80px; max-width:1640px; color:var(--ink)">Option 2 is the best <em>long-term</em> fit; Option 1 is the best <em>deliverable</em> fit — and the route to Option 2.</p>
     </div>
     <div class="foot"><span>MGTS7803 · UQ MBA</span><span class="src">Source: Team SAF evaluation and 10,000-weight sensitivity analysis.</span></div>
     <aside class="notes">
@@ -665,7 +717,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      10 · RECOMMENDATION — what
      ========================================================= -->
-<section class="slide dark std" data-section="Recommendation">
+<section class="slide light tint-lav std" data-section="Recommendation">
     <div class="chrome"><span class="sec"><b>05</b> · Recommendation</span><span class="count"></span></div>
     <div class="body">
         <div class="head"><h2 class="h2" data-a>Recommendation: an <em>ECHO-led, stage-gated</em> Option 1</h2>
@@ -707,7 +759,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      12 · VALUE — the numbers
      ========================================================= -->
-<section class="slide dark std" data-section="Value">
+<section class="slide light tint-mint std" data-section="Value">
     <div class="chrome"><span class="sec"><b>06</b> · Value</span><span class="count"></span></div>
     <div class="body">
         <div class="head"><h2 class="h2" data-a>Better access and a protected specialist workforce, for a <em>small, capped</em> investment</h2></div>
@@ -747,7 +799,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      14 · IMPLEMENTATION — timeline
      ========================================================= -->
-<section class="slide dark std" data-section="Implementation">
+<section class="slide light tint-blue std" data-section="Implementation">
     <div class="chrome"><span class="sec"><b>07</b> · Implementation</span><span class="count"></span></div>
     <div class="body">
         <div class="head"><h2 class="h2" data-a>18 months, four phases, <em>Board gates</em> at every step</h2></div>
@@ -795,7 +847,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      16 · DECISIONS SOUGHT
      ========================================================= -->
-<section class="slide dark std" data-section="Decisions">
+<section class="slide light tint-lav std" data-section="Decisions">
     <div class="chrome"><span class="sec"><b>08</b> · Decisions and risks</span><span class="count"></span></div>
     <div class="body">
         <div class="head"><h2 class="h2" data-a>Four <em>decisions</em> we ask of the Board</h2></div>
@@ -836,15 +888,15 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      18 · CONCLUSION — protect / extend / build
      ========================================================= -->
-<section class="slide dark std" data-section="Conclusion">
+<section class="slide light tint-mint std" data-section="Conclusion">
     <div class="chrome"><span class="sec"><b>09</b> · Conclusion</span><span class="count"></span></div>
     <div class="body">
         <div class="cols cols-3">
-            <div class="step" data-a style="--d:0"><div class="kicker">Protect</div><p class="h3" style="margin-top:24px; color:#F0ECE3">Keep complex, high-acuity and genuinely quaternary care <em>concentrated at QCH</em>.</p></div>
-            <div class="step" data-a style="--d:1"><div class="kicker">Extend</div><p class="h3" style="margin-top:24px; color:#F0ECE3">Use networked care, ECHO®, shared-care pathways and local capability to bring appropriate care <em>closer to families</em>.</p></div>
-            <div class="step" data-a style="--d:2"><div class="kicker">Build</div><p class="h3" style="margin-top:24px; color:#F0ECE3">Use the 18-month stage-gated pilot to establish evidence, governance and data foundations for a <em>future network-orchestrator</em> model.</p></div>
+            <div class="step" data-a style="--d:0"><div class="kicker">Protect</div><p class="h3" style="margin-top:24px; color:var(--ink)">Keep complex, high-acuity and genuinely quaternary care <em>concentrated at QCH</em>.</p></div>
+            <div class="step" data-a style="--d:1"><div class="kicker">Extend</div><p class="h3" style="margin-top:24px; color:var(--ink)">Use networked care, ECHO®, shared-care pathways and local capability to bring appropriate care <em>closer to families</em>.</p></div>
+            <div class="step" data-a style="--d:2"><div class="kicker">Build</div><p class="h3" style="margin-top:24px; color:var(--ink)">Use the 18-month stage-gated pilot to establish evidence, governance and data foundations for a <em>future network-orchestrator</em> model.</p></div>
         </div>
-        <p class="lead" data-a style="--d:3; margin-top:90px; color:var(--text-warm)">Option 1 delivers value now — while building CHQ's capability to transform later.</p>
+        <p class="lead" data-a style="--d:3; margin-top:90px; color:var(--ink)">Option 1 delivers value now — while building CHQ's capability to transform later.</p>
     </div>
     <div class="foot"><span>MGTS7803 · UQ MBA</span><span>Children's Health Queensland</span></div>
     <aside class="notes">
@@ -857,7 +909,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      19 · CLOSING LINE + Q&A
      ========================================================= -->
-<section class="slide dark statement" data-section="Questions">
+<section class="slide light tint-blue statement" data-section="Questions">
     <div class="inner">
         <div class="kicker" data-a>Our answer to the opening question</div>
         <div class="rule grow"></div>
@@ -872,7 +924,7 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
 <!-- =========================================================
      APPENDIX DIVIDER
      ========================================================= -->
-<section class="slide dark chapter" data-section="Appendix">
+<section class="slide light tint-lav chapter" data-section="Appendix">
     <div class="ghost">A–I</div>
     <div class="inner">
         <div class="kicker" data-a>For questions</div>
@@ -1089,11 +1141,12 @@ body.editing [contenteditable="true"] { outline: 1px dashed rgba(200,168,112,.5)
     <div class="body">
         <div class="head"><h2 class="h2">Generative AI <em>acknowledgement</em></h2></div>
         <div style="max-width:1400px">
-                <div class="kicker" style="margin-bottom:22px">AI tool and nature of use</div>
+                <div class="kicker" style="margin-bottom:22px">How our team used generative AI</div>
                 <ul class="dash app-list big">
-                    <li><span><b>Tool.</b> Anthropic Claude, used through Claude Code.</span></li>
-                    <li><span><b>How it was used.</b> To redesign the team's draft presentation: slide structure for speaker-led delivery, visual design and layout, charts, scorecard and timeline graphics, and placing the team's speaker notes on each slide.</span></li>
-                    <li><span><b>Scope.</b> Main presentation slides and appendices. Claude was used as an assistive design and formatting tool; the analysis, figures and sources are the team's, and it was not treated as an authoritative source of CHQ facts.</span></li>
+                    <li><span><b>Tool.</b> We used Anthropic's Claude, through Claude Code.</span></li>
+                    <li><span><b>How we used it.</b> We used Claude to help redesign our draft presentation: restructuring the slides for a speaker-led talk, the visual design and layout, the chart, scorecard and timeline graphics, and placing our speaker notes on each slide.</span></li>
+                    <li><span><b>What remains our own.</b> The research, analysis, strategic judgement, figures and sources are our team's work. We did not treat Claude as a source of CHQ facts.</span></li>
+                    <li><span><b>Our oversight.</b> We reviewed and edited all AI-assisted material, checked the figures against our cited sources, and take full responsibility for this submission.</span></li>
                     <li><span><b>Date.</b> September–October 2026.</span></li>
                 </ul>
         </div>
